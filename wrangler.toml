@@ -1,0 +1,25 @@
+name = "koudai"
+main = "worker/index.js"
+compatibility_date = "2025-05-01"
+workers_dev = true
+# 日志等级（可改 "debug" 排错）
+log_level = "info"
+
+# 静态资源：来自 ./public（未匹配的请求回退到 worker 处理路由/接口）
+[assets]
+directory = "./public"
+
+# D1 数据库绑定（部署前需先创建：wrangler d1 create koudai，并把 database_id 填到下面）
+[[d1_databases]]
+binding = "DB"
+database_name = "koudai"
+database_id = "REPLACE_WITH_YOUR_D1_ID"
+
+[vars]
+NODE_ENV = "production"
+# 生产环境务必改用强随机值，可用：wrangler secret put SESSION_SECRET
+SESSION_SECRET = "dev-only-change-me"
+
+# 定时任务：北京时间 00:00（UTC 16:00）结算前一天的每日最低消费
+[triggers]
+crons = ["0 16 * * *"]

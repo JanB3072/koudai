@@ -1,24 +1,22 @@
 {
   "name": "koudai-new",
   "version": "1.0.0",
-  "description": "口袋管家 - 游戏账号管理与云端托管平台",
+  "description": "口袋管家 - 游戏账号管理与云端托管平台（Cloudflare Workers + D1 版本）",
   "private": true,
-  "main": "app.js",
+  "main": "worker/index.js",
   "scripts": {
-    "start": "node ./bin/www",
-    "dev": "node ./bin/www"
+    "start": "wrangler dev",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "npm run build:views && wrangler deploy",
+    "build:views": "node scripts/build-views.mjs",
+    "cf:migrate:local": "wrangler d1 migrations apply koudai --local",
+    "cf:migrate:remote": "wrangler d1 migrations apply koudai --remote"
   },
   "dependencies": {
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "dotenv": "^16.4.5",
-    "ejs": "^3.1.9",
-    "express": "^4.22.3",
-    "express-session": "^1.18.0",
-    "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
-    "mysql": "^2.18.1",
-    "swagger-jsdoc": "6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "ejs": "^3.1.10",
+    "hono": "^4.13.14"
+  },
+  "devDependencies": {
+    "wrangler": "^3.80.0"
   }
 }
