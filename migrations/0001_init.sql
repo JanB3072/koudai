@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS accounts (
   status VARCHAR(20) NOT NULL DEFAULT '正常',
   created_at DATE NOT NULL DEFAULT (date('now')),
   updated_at DATETIME NOT NULL DEFAULT (datetime('now')),
-  INDEX idx_accounts_user (user_id),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -73,9 +72,7 @@ CREATE TABLE IF NOT EXISTS points_log (
   deducted_points DECIMAL(10,2) NOT NULL DEFAULT 0,
   remaining_points DECIMAL(10,2) NOT NULL DEFAULT 0,
   day DATE NOT NULL,
-  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
-  INDEX idx_pl_user_day (user_id, day),
-  INDEX idx_pl_day (day)
+  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
 -- 充值/调整记录
@@ -88,9 +85,7 @@ CREATE TABLE IF NOT EXISTS recharge_log (
   remaining_points DECIMAL(10,2) NOT NULL DEFAULT 0,
   admin VARCHAR(50) NOT NULL DEFAULT '',
   note VARCHAR(255) NOT NULL DEFAULT '',
-  created_at DATETIME NOT NULL DEFAULT (datetime('now')),
-  INDEX idx_rl_user (user_id),
-  INDEX idx_rl_created (created_at)
+  created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
 -- 后台管理员
@@ -126,6 +121,13 @@ CREATE TABLE IF NOT EXISTS settings (
   key VARCHAR(50) NOT NULL PRIMARY KEY,
   value VARCHAR(255) NOT NULL DEFAULT ''
 );
+
+-- 索引（SQLite 不支持在 CREATE TABLE 内联 INDEX，需独立建）
+CREATE INDEX IF NOT EXISTS idx_accounts_user ON accounts(user_id);
+CREATE INDEX IF NOT EXISTS idx_pl_user_day ON points_log(user_id, day);
+CREATE INDEX IF NOT EXISTS idx_pl_day ON points_log(day);
+CREATE INDEX IF NOT EXISTS idx_rl_user ON recharge_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_rl_created ON recharge_log(created_at);
 
 -- ---------- 种子数据 ----------
 INSERT OR IGNORE INTO admin (username, password) VALUES ('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'); -- 默认 admin / admin123

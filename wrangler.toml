@@ -2,8 +2,6 @@ name = "koudai"
 main = "worker/index.js"
 compatibility_date = "2025-05-01"
 workers_dev = true
-# 日志等级（可改 "debug" 排错）
-log_level = "info"
 
 # 静态资源：来自 ./public（未匹配的请求回退到 worker 处理路由/接口）
 [assets]
@@ -13,12 +11,11 @@ directory = "./public"
 [[d1_databases]]
 binding = "DB"
 database_name = "koudai"
-database_id = "REPLACE_WITH_YOUR_D1_ID"
+database_id = "f64ac7f0-e4d3-4cb6-b003-dc82923d0284"
 
 [vars]
 NODE_ENV = "production"
-# 生产环境务必改用强随机值，可用：wrangler secret put SESSION_SECRET
-SESSION_SECRET = "dev-only-change-me"
+# SESSION_SECRET 已通过 wrangler secret put 设置为密钥，不在明文 vars 中
 
 # 定时任务：北京时间 00:00（UTC 16:00）结算前一天的每日最低消费
 [triggers]

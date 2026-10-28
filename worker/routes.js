@@ -7,6 +7,9 @@ import { render } from './render.js';
 
 const app = new Hono();
 
+// 统一错误处理（不暴露内部堆栈）
+app.onError((err, c) => c.text('服务器内部错误', 500));
+
 // 安全头 / CORS / 会话解析
 app.use('*', async (c, next) => {
   db.setDB(c.env.DB);
