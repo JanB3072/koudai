@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>价格与计费 - 口袋管家</title>
+<meta name="description" content="口袋管家价格与计费说明：工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天）；每日最低消费 <%= billing.dailyMinimum %> 点/天；月卡、季卡、半年卡、年卡点数套餐。">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/features">功能介绍</a>
+      <a href="/download">下载</a>
+      <a href="/manual">使用说明</a>
+      <a href="/pricing" class="active">价格</a>
+      <a href="/faq">常见问题</a>
+    </nav>
+    <div class="header-actions"><a href="/login" style="margin-right:14px;color:#4f7cff;font-size:14px;text-decoration:none">登录</a><span class="status-pill"><span class="dot"></span>服务运行中</span></div>
+  </div>
+</header>
+
+<div class="container"><div class="breadcrumb"><a href="/">首页</a><span>/</span>价格与计费</div></div>
+
+<section style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">PRICING</div>
+      <h2>按真实使用时长灵活计费</h2>
+      <p>工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天）；每日最低消费 <%= billing.dailyMinimum %> 点/天</p>
+    </div>
+    <div class="grid grid-4">
+      <div class="price-card">
+        <h3><%= pricing.monthlyCard.name %></h3>
+        <div class="price">&yen;<%= pricing.monthlyCard.price %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.monthlyCard.days %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.monthlyCard.points %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= pricing.monthlyCard.save %></span>
+      </div>
+      <div class="price-card featured">
+        <h3><%= pricing.quarterlyCard.name %></h3>
+        <div class="price">&yen;<%= pricing.quarterlyCard.price %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.quarterlyCard.days %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.quarterlyCard.points %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= pricing.quarterlyCard.save %></span>
+      </div>
+      <div class="price-card">
+        <h3><%= pricing.halfYearCard.name %></h3>
+        <div class="price">&yen;<%= pricing.halfYearCard.price %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.halfYearCard.days %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.halfYearCard.points %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= pricing.halfYearCard.save %></span>
+      </div>
+      <div class="price-card">
+        <h3><%= pricing.yearlyCard.name %></h3>
+        <div class="price">&yen;<%= pricing.yearlyCard.price %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.yearlyCard.days %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.yearlyCard.points %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= pricing.yearlyCard.save %></span>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text-light);font-size:13px;margin-top:24px">购买套餐后获得对应点数，按真实使用时长消耗：工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天），每日最低消费 <%= billing.dailyMinimum %> 点/天。</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head"><div class="eyebrow">BILLING</div><h2>计费规则说明</h2></div>
+    <div class="grid grid-2">
+      <div class="card" style="border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.1)">
+        <h3>工具运行中（按小时）</h3>
+        <p style="font-size:13px;color:var(--text-light)">工具运行期间按真实小时数计费</p>
+        <div style="font-size:32px;font-weight:800;color:var(--primary);margin:12px 0"><%= billing.enabledRatePerHour %> 点/小时</div>
+        <ul style="padding-left:20px;color:var(--text-light);font-size:14px">
+          <li>连续运行 24 小时 = <%= billing.disabledRatePerDay %> 点/天</li>
+          <li>停止工具后结束本段计费</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>每日最低消费</h3>
+        <p style="font-size:13px;color:var(--text-light)">无论是否启用，每天至少消耗</p>
+        <div style="font-size:32px;font-weight:800;color:var(--primary);margin:12px 0"><%= billing.dailyMinimum %> 点/天</div>
+        <ul style="padding-left:20px;color:var(--text-light);font-size:14px">
+          <li>当日实际使用不足 <%= billing.dailyMinimum %> 点时，按 <%= billing.dailyMinimum %> 点收取</li>
+          <li>运行消耗达到最低后不再额外补扣</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head"><div class="eyebrow">POINTS</div><h2>点数如何使用</h2></div>
+    <div class="grid grid-4">
+      <div class="step"><div class="step-num">01</div><div><strong>工具运行按小时计</strong><p style="font-size:13px;color:var(--text-light)">工具运行时每小时消耗 <%= billing.enabledRatePerHour %> 点，按真实运行时间累计。</p></div></div>
+      <div class="step"><div class="step-num">02</div><div><strong>每日最低消费</strong><p style="font-size:13px;color:var(--text-light)">每天至少消耗 <%= billing.dailyMinimum %> 点，当日不足时按最低收取。</p></div></div>
+      <div class="step"><div class="step-num">03</div><div><strong>每个账号单独计费</strong><p style="font-size:13px;color:var(--text-light)">每个游戏账号的订阅都会分别消耗点数，多账号同时使用时消耗增加。</p></div></div>
+      <div class="step"><div class="step-num">04</div><div><strong>余额不足会暂停</strong><p style="font-size:13px;color:var(--text-light)">点数不足时停止计费，补充点数后可继续。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="cloud-hang-pricing">
+  <div class="container">
+    <div class="section-head"><div class="eyebrow">CLOUD PLAY</div><h2>云端托管与计费</h2>
+    <p>云端托管即「启用工具」状态，按 <%= billing.enabledRatePerHour %> 点/小时计费：一个角色连续运行 24 小时消耗 <%= billing.disabledRatePerDay %> 点，每天另有最低消费 <%= billing.dailyMinimum %> 点。</p></div>
+    <div class="grid grid-4">
+      <div class="step"><div class="step-num">01</div><div><strong>保持启用状态</strong><p style="font-size:13px;color:var(--text-light)">云端接管期间视为工具运行中，按 <%= billing.enabledRatePerHour %> 点/小时计费。</p></div></div>
+      <div class="step"><div class="step-num">02</div><div><strong>需有可用资源</strong><p style="font-size:13px;color:var(--text-light)">切换云端托管时会检查资源，资源不足时不会完成切换。</p></div></div>
+      <div class="step"><div class="step-num">03</div><div><strong>停止即结束计费</strong><p style="font-size:13px;color:var(--text-light)">调用停止接口后结束本段计时，但每日最低消费 <%= billing.dailyMinimum %> 点/天仍会照常结算。</p></div></div>
+      <div class="step"><div class="step-num">04</div><div><strong>点数不足会暂停</strong><p style="font-size:13px;color:var(--text-light)">点数耗尽时云端托管中止，补充点数后可在控制台恢复。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="subscriptionRulesTitle">
+  <div class="container">
+    <div class="section-head"><div class="eyebrow">SUBSCRIPTION</div><h2>游戏账号订阅规则</h2>
+    <p>自己的点数仅用于自己的订阅；默认游戏账号保持自动续费；关联他人游戏账号不代表拥有其订阅。</p></div>
+    <div class="grid grid-3">
+      <div class="step"><div class="step-num">01</div><div><strong>需保留一个默认游戏账号</strong><p style="font-size:13px;color:var(--text-light)">首次关联自有游戏账号时，系统自动选择一个作为默认账号。</p></div></div>
+      <div class="step"><div class="step-num">02</div><div><strong>默认账号保持自动续费</strong><p style="font-size:13px;color:var(--text-light)">默认游戏账号不能改为手动续费，点数充足时系统自动为其续费。</p></div></div>
+      <div class="step"><div class="step-num">03</div><div><strong>更换默认账号后才能解绑</strong><p style="font-size:13px;color:var(--text-light)">默认账号不能直接解除关联，如需解绑请先将另一自有账号设为默认。</p></div></div>
+      <div class="step"><div class="step-num">04</div><div><strong>点数仅用于自己的订阅</strong><p style="font-size:13px;color:var(--text-light)">即使关联了他人游戏账号，也不能用自己的点数为其续费。</p></div></div>
+      <div class="step"><div class="step-num">05</div><div><strong>关联账号不等于拥有订阅</strong><p style="font-size:13px;color:var(--text-light)">同一游戏账号可能被多人关联，谁拥有订阅谁才能管理。</p></div></div>
+      <div class="step"><div class="step-num">06</div><div><strong>其他自有账号可选续费方式</strong><p style="font-size:13px;color:var(--text-light)">除默认账号必须自动续费外，其他高级版账号可选自动或手动续费；尊享版必须自动续费。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head"><div class="eyebrow">BUY</div><h2>如何购买</h2></div>
+    <div class="steps" style="max-width:600px;margin:0 auto">
+      <div class="step"><div class="step-num">1</div><div><strong>联系管理员</strong><p style="font-size:13px;color:var(--text-light)">联系所在用户群管理员，选择所需套餐。</p></div></div>
+      <div class="step"><div class="step-num">2</div><div><strong>取得激活码</strong><p style="font-size:13px;color:var(--text-light)">完成购买后，管理员会提供对应套餐的激活码。</p></div></div>
+      <div class="step"><div class="step-num">3</div><div><strong>兑换点数</strong><p style="font-size:13px;color:var(--text-light)">登录官网控制台，在"激活码兑换"中提交激活码。</p></div></div>
+    </div>
+    <div style="text-align:center;margin-top:32px">
+      <a href="#" class="btn btn-primary">前往控制台兑换</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head"><div class="eyebrow">BONUS</div><h2>体验与推荐奖励</h2></div>
+    <div class="card">
+      <h3>首次关联体验</h3>
+      <p style="font-size:14px;color:var(--text-light)">每个游戏账号首次关联口袋管家时，可获得 1 天高级版体验。同一游戏账号只能领取一次，解绑后重新关联不会重复赠送。</p>
+      <table>
+        <thead><tr><th>被邀请人购买</th><th>推荐人获得</th><th>被邀请人活动奖励</th></tr></thead>
+        <tbody>
+          <tr><td>月卡</td><td>3 天（72 点）</td><td>2 天（48 点）</td></tr>
+          <tr><td>季卡</td><td>5 天（120 点）</td><td>3 天（72 点）</td></tr>
+          <tr><td>半年卡</td><td>8 天（192 点）</td><td>5 天（120 点）</td></tr>
+          <tr><td>年卡</td><td>12 天（288 点）</td><td>8 天（192 点）</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:13px;color:var(--text-light);margin-top:16px">推荐人奖励在被邀请人首次购买符合条件套餐后发放。被邀请人额外奖励仅在对应套餐或活动明确标注"含受邀奖励"时发放。</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col"><h4>口袋管家</h4><p style="font-size:13px;line-height:1.8">专业的口袋奇兵智能辅助工具。</p></div>
+      <div class="footer-col"><h4>产品</h4><a href="/features">功能介绍</a><a href="/download">下载</a><a href="/pricing">价格</a></div>
+      <div class="footer-col"><h4>帮助</h4><a href="/manual">使用说明</a><a href="/faq">常见问题</a></div>
+      <div class="footer-col"><h4>其他</h4><a href="/manual#cloud-hang">云端托管说明</a><a href="/pricing#cloud-hang-pricing">尊享版计费</a></div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 口袋管家</div>
+  </div>
+</footer>
+<script src="/auth.js"></script>
+</body>
+</html>

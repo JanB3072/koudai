@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能介绍 - 口袋管家</title>
+<meta name="description" content="口袋管家功能一览，94项功能按七大分类整理，涵盖战斗出征、资源采集、联盟互动、日常福利、限时活动、跨服玩法及统计工具。">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/features" class="active">功能介绍</a>
+      <a href="/download">下载</a>
+      <a href="/manual">使用说明</a>
+      <a href="/pricing">价格</a>
+      <a href="/faq">常见问题</a>
+    </nav>
+    <div class="header-actions"><a href="/login" style="margin-right:14px;color:#4f7cff;font-size:14px;text-decoration:none">登录</a><span class="status-pill"><span class="dot"></span>服务运行中</span></div>
+  </div>
+</header>
+
+<div class="container"><div class="breadcrumb"><a href="/">首页</a><span>/</span>功能介绍</div></div>
+
+<section style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">功能总览</div>
+      <h2>功能覆盖，快速掌握</h2>
+      <p>按分类浏览各项功能，判断是否符合你的日常、活动及跨服需求。</p>
+    </div>
+    <div class="grid grid-3" style="text-align:center;margin-bottom:48px">
+      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--primary)">94</div><p>功能项</p></div>
+      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--accent)">7</div><p>大分类</p></div>
+      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--warning)">48</div><p>风险提示</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="status-banner" style="padding:48px 0">
+  <div class="container">
+    <h2>云端托管：离线后持续运行</h2>
+    <p style="margin-bottom:24px">云端托管并非新增游戏任务，而是让已配置好的功能在本地设备离线后继续执行。配置保存后，离线约 2 至 3 分钟由云端接管；重新登录游戏时，云端会先释放角色。</p>
+    <div class="grid grid-4">
+      <div class="card" style="text-align:left"><div style="color:var(--primary);font-weight:700">01</div><h3 style="margin:8px 0">离线接管</h3><p>无需始终开启电脑、浏览器或手机，确认本地离线后云端继续运行当前角色。</p></div>
+      <div class="card" style="text-align:left"><div style="color:var(--primary);font-weight:700">02</div><h3 style="margin:8px 0">回归让位</h3><p>正常打开游戏即可，云端会先退出，避免同一角色在本地与云端同时运行。</p></div>
+      <div class="card" style="text-align:left"><div style="color:var(--primary);font-weight:700">03</div><h3 style="margin:8px 0">沿用保存配置</h3><p>云端仅执行已开启并保存的功能，不会自动打开全部任务或替你决定资源消耗。</p></div>
+      <div class="card" style="text-align:left"><div style="color:var(--primary);font-weight:700">04</div><h3 style="margin:8px 0">日志可查</h3><p>操作日志会标注云端来源记录，便于确认接管状态、执行内容及跳过步骤。</p></div>
+    </div>
+    <div style="margin-top:24px">
+      <a href="/manual#cloud-hang" class="btn btn-primary">查看云端托管说明</a>
+      <a href="/pricing#cloud-hang-pricing" class="btn btn-ghost">了解尊享版计费</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Feature Index</div>
+      <h2>功能清单</h2>
+      <p>共 94 项功能，按分类快速筛选</p>
+    </div>
+    <div class="tabs" id="catTabs">
+      <button class="tab active" data-cat="all">全部 (94)</button>
+      <button class="tab" data-cat="battle">战斗出征 (12)</button>
+      <button class="tab" data-cat="gather">资源采集 (18)</button>
+      <button class="tab" data-cat="alliance">联盟互动 (10)</button>
+      <button class="tab" data-cat="daily">日常福利 (22)</button>
+      <button class="tab" data-cat="event">限时活动 (22)</button>
+      <button class="tab" data-cat="c8">跨服玩法 (7)</button>
+      <button class="tab" data-cat="tool">统计工具 (3)</button>
+    </div>
+    <div class="grid grid-3" id="featGrid"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col"><h4>口袋管家</h4><p style="font-size:13px;line-height:1.8">专业的口袋奇兵智能辅助工具。</p></div>
+      <div class="footer-col"><h4>产品</h4><a href="/features">功能介绍</a><a href="/download">下载</a><a href="/pricing">价格</a></div>
+      <div class="footer-col"><h4>帮助</h4><a href="/manual">使用说明</a><a href="/faq">常见问题</a></div>
+      <div class="footer-col"><h4>其他</h4><a href="/manual#cloud-hang">云端托管说明</a><a href="/pricing#cloud-hang-pricing">尊享版计费</a></div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 口袋管家</div>
+  </div>
+</footer>
+
+<script>
+const feats = [
+{name:'战斗场景预设',cat:'battle',risk:false,desc:'将常用战斗配置保存为预设，一键切换编队、技能组、皮肤及增益道具，便于不同战斗间快速切换。'},
+{name:'战区地图搜索',cat:'tool',risk:false,desc:'按服务器、坐标或目标条件检索战区地图数据，快速定位目标，辅助跨区查找。'},
+{name:'扫荡黑暗敌军',cat:'battle',risk:true,desc:'自动搜寻并攻击黑暗敌军或活动怪，支持怪物组、等级范围、普通区/中立区、多队列、五连及体力策略。'},
+{name:'自动发起集结',cat:'battle',risk:true,desc:'自动发起集结类攻击，适用于联盟活动、战锤或活动怪等需持续开车的场景。'},
+{name:'救援难民',cat:'battle',risk:false,desc:'自动使用救援入口拯救难民，减少重复查找与点击操作。'},
+{name:'自动加入集结',cat:'battle',risk:false,desc:'自动加入联盟成员发起的集结，可按目标类型筛选战锤、难民营、军团据点等。'},
+{name:'挑战战争之源',cat:'battle',risk:true,desc:'自动攻击战争之源等世界 Boss，按次数、编队及体力策略执行。'},
+{name:'自动修复士兵',cat:'battle',risk:true,desc:'自动修复受损士兵，减少战斗后手动进入维修入口的操作。'},
+{name:'免受攻击守护',cat:'battle',risk:true,desc:'自动处理免战保护相关操作，适合被攻击、抵近或迁城风险较高时快速响应。'},
+{name:'快速打击基地',cat:'battle',risk:true,desc:'快速攻击指定基地目标，可配合编队、皮肤、强化及战斗配置减少临时操作。'},
+{name:'连续摧毁建筑',cat:'battle',risk:true,desc:'连续攻击建筑目标，适合需反复拆建筑或推进战场目标的场景。'},
+{name:'连续建造设施',cat:'battle',risk:true,desc:'连续建造指定建筑或战场设施，适合活动期间重复铺设建筑任务。'},
+{name:'自动采集资源',cat:'gather',risk:false,desc:'自动派队采集普通田、机械田、遗迹田等资源点，可保留机动队列并临时切换采集技能。'},
+{name:'建造资源设施',cat:'gather',risk:true,desc:'自动建造或补充资源设施，维持基地基础产出。'},
+{name:'拆解英雄技能',cat:'gather',risk:true,desc:'拆解英雄技能书，可同时处理 2-9 级高级技能。'},
+{name:'英雄招募',cat:'gather',risk:true,desc:'自动完成每日免费招募及每天 2 次高级招募，补齐其他任务依赖的招募次数。'},
+{name:'联盟采集',cat:'gather',risk:false,desc:'派遣队伍进行联盟采集，必要时撤回联盟采集队伍。'},
+{name:'收割金币',cat:'gather',risk:false,desc:'自动收割基地内可收取的金币，及时入账基础产出。'},
+{name:'生产材料',cat:'gather',risk:true,desc:'自动处理兵种装备材料生产，避免忘记排产。'},
+{name:'制造中心',cat:'gather',risk:true,desc:'在制造中心开始制造，并领取已完成的制造奖励。'},
+{name:'军官院校',cat:'gather',risk:true,desc:'自动学习军官院校天赋，支持见习军官、进阶天赋、通用技巧、兵种克制等。'},
+{name:'培育基地',cat:'gather',risk:true,desc:'处理培育基地的助产、收获、繁殖设置、帮助繁殖及同意繁殖申请。'},
+{name:'宠物属性透视',cat:'gather',risk:false,desc:'显示宠物或异能兽属性透视信息，便于查看隐藏属性。'},
+{name:'秘密武器',cat:'gather',risk:true,desc:'使用秘密武器技能并领取相关空投奖励。'},
+{name:'花堡技能',cat:'gather',risk:true,desc:'自动使用花堡或城市技能，可分别设置两个技能的使用次数。'},
+{name:'征服者采集',cat:'gather',risk:false,desc:'派遣征服者矿区采集并领取矿区奖励。'},
+{name:'批量使用物品',cat:'gather',risk:true,desc:'批量使用资源、材料箱、强化部件箱、科技箱、元素箱、技能箱、招募券等背包物品。'},
+{name:'清理低级兵',cat:'gather',risk:true,desc:'删除仓库中的低级兵，优化兵力结构。'},
+{name:'智能造兵',cat:'gather',risk:true,desc:'自动训练指定兵种，支持陆海空选择及智能造兵，适合日常补兵与活动训练。'},
+{name:'自动合兵',cat:'gather',risk:true,desc:'自动合并低级士兵，整理兵营并提升可用兵力等级。'},
+{name:'联盟捐献',cat:'alliance',risk:true,desc:'自动处理联盟科技、联盟技能、世界遗址、联盟建筑等捐献入口，稳定获取联盟贡献。'},
+{name:'联盟互助',cat:'alliance',risk:false,desc:'自动帮助联盟成员，并处理自身联盟帮助申请。'},
+{name:'联盟礼物',cat:'alliance',risk:false,desc:'自动领取联盟礼物及相关奖励，减少礼物堆积。'},
+{name:'占领发射井',cat:'alliance',risk:true,desc:'领取占领发射井活动的积分奖励。'},
+{name:'联盟保卫战',cat:'alliance',risk:false,desc:'为联盟保卫战自动派遣防守队伍，并可连续加速或暂停加速。'},
+{name:'联盟运输队',cat:'alliance',risk:false,desc:'领取联盟运输队任务奖励、积分奖励及总积分奖励。'},
+{name:'联盟机甲管理',cat:'alliance',risk:false,desc:'管理联盟机甲召唤，支持召唤提醒及提前分钟数设置。'},
+{name:'刷新联盟遗迹',cat:'alliance',risk:false,desc:'刷新联盟遗迹资源点。'},
+{name:'捐献挑战联盟机甲',cat:'alliance',risk:true,desc:'自动处理联盟机甲碎片捐献与挑战，可设置捐献数量、攻击编队、强化、皮肤等。'},
+{name:'领取遗迹道具',cat:'alliance',risk:false,desc:'领取联盟遗迹中的军队奖励、道具奖励及遗迹宝藏。'},
+{name:'每日补给',cat:'daily',risk:false,desc:'自动检查并领取在线奖励、免费礼包、税收奖励、王座之礼等基础福利。'},
+{name:'军级奖励',cat:'daily',risk:false,desc:'自动领取军级或 VIP 类每日奖励。'},
+{name:'周卡奖励',cat:'daily',risk:false,desc:'自动领取周卡每日奖励及自定义周卡奖励。'},
+{name:'月卡奖励',cat:'daily',risk:false,desc:'自动领取月卡每日奖励，减少漏领。'},
+{name:'特惠礼包',cat:'daily',risk:false,desc:'领取特惠礼包活动中已达条件的积分奖励。'},
+{name:'金融中心',cat:'daily',risk:false,desc:'领取金融中心或装修商店中的免费装修币或免费内容。'},
+{name:'雷达任务',cat:'daily',risk:false,desc:'自动处理雷达任务，清理每日雷达次数及相关奖励。'},
+{name:'荒野行动',cat:'daily',risk:false,desc:'领取荒野行动或机甲塔时间奖励。'},
+{name:'帝国宝藏',cat:'daily',risk:false,desc:'搜索并攻击帝国宝藏目标。'},
+{name:'沙盘演习',cat:'daily',risk:false,desc:'自动挑战沙盘演习 PVE。'},
+{name:'远征行动',cat:'daily',risk:false,desc:'领取远征行动奖励及扫荡奖励。'},
+{name:'跨战区演习',cat:'daily',risk:true,desc:'自动参与跨战区演习挑战，可使用城市技能、道具增益及英雄技能。'},
+{name:'次元矿洞',cat:'daily',risk:true,desc:'处理次元矿洞采矿、分享采集、刷新、领奖、帮助打包及偷窃。'},
+{name:'岛屿作战',cat:'daily',risk:true,desc:'处理岛屿作战章节重置及扫荡。'},
+{name:'悬赏任务',cat:'daily',risk:false,desc:'领取已完成的悬赏任务奖励及日常宝箱奖励，不会替你完成采集、购买等前置任务。'},
+{name:'天降宝箱',cat:'daily',risk:false,desc:'领取天降宝箱中已达成的分享宝箱奖励。'},
+{name:'卡车争夺',cat:'daily',risk:true,desc:'自动处理卡车争夺中的发车、刷新、拦截及奖励领取，可按品质和道具控制策略。'},
+{name:'宝藏与祝福',cat:'daily',risk:false,desc:'处理宝藏与祝福中的泰坦宝藏、芯片祝福、军队撞击等动作。'},
+{name:'空投兑换',cat:'daily',risk:true,desc:'领取空投兑换免费奖励并执行可用兑换。'},
+{name:'礼品码',cat:'daily',risk:false,desc:'自动提交配置中的礼品码并领取兑换结果。'},
+{name:'宝藏守卫攻击',cat:'daily',risk:true,desc:'自动处理高级宝藏守卫目标，可按编队、延迟、每日上限及体力补充控制节奏。'},
+{name:'宝藏商店道具',cat:'daily',risk:true,desc:'按宝藏商店已选道具清单购买指定道具，支持可选商品。'},
+{name:'生日蛋糕',cat:'event',risk:false,desc:'自动领取聊天中的生日蛋糕红包，必要时发送生日祝福。'},
+{name:'个人保卫战',cat:'event',risk:false,desc:'开启后在个人保卫战进行中显示加速按钮，并自动领取积分奖励。'},
+{name:'折扣商城',cat:'event',risk:true,desc:'自动帮他人砍折扣商城、分享自身可砍商品，并可自动兑换打折券。'},
+{name:'超值活动',cat:'event',risk:false,desc:'集中处理多个活动的免费领取项，包括数字寻宝、节日兑换、幸运星等。'},
+{name:'先锋试炼',cat:'event',risk:false,desc:'领取先锋试炼任务奖励及积分奖励。'},
+{name:'装备转转乐',cat:'event',risk:true,desc:'在装备转转乐活动中领取每日首次免费抽奖。'},
+{name:'幸运寻宝',cat:'event',risk:true,desc:'在幸运寻宝中使用可用的免费抽奖次数。'},
+{name:'新世界净化',cat:'event',risk:true,desc:'启动新世界净化相关子功能，可控制是否攻击净化柱、是否修复其他设施。'},
+{name:'异能秘境',cat:'event',risk:true,desc:'在异能秘境中创建队伍、申请入队、同意申请、使用恢复物品、拾取掉落物等。'},
+{name:'夺宝奇兵',cat:'event',risk:false,desc:'处理夺宝奇兵组队、申请审批、出征、技能背包、技能使用及奖励信息。'},
+{name:'印石采集',cat:'event',risk:false,desc:'派遣印石矿区采集并领取印石矿区奖励。'},
+{name:'印石日常',cat:'event',risk:false,desc:'刷新印石日常任务信息，并领取已达积分要求的印石日常奖励。'},
+{name:'卡特兹',cat:'event',risk:false,desc:'处理卡特兹活动的定级、挑战、翻牌、宝箱奖励及联盟求助，支持定时清卡和战前增益。'},
+{name:'军火大作战',cat:'event',risk:true,desc:'处理军火大作战任务领奖、高级招募、翻牌及可选钻石重置，并临时调整打野次数配合活动。'},
+{name:'传说宝藏',cat:'event',risk:false,desc:'挖掘传说宝藏世界点。'},
+{name:'印石秘所',cat:'event',risk:true,desc:'在印石秘所中按勾选商品和策略自动抢购，并监听钻石红包。'},
+{name:'英雄大满贯',cat:'event',risk:true,desc:'在英雄大满贯中按条件进行钻石购买。'},
+{name:'荒芜之地争夺',cat:'event',risk:true,desc:'在荒芜之地争夺中自动攻击目标，可使用城市技能、道具增益及英雄技能。'},
+{name:'节日庆典',cat:'event',risk:true,desc:'处理节日庆典免费奖励、世界奖励、金杯之战布防及进攻。'},
+{name:'空投补给获得',cat:'event',risk:false,desc:'运输空投补给并领取相关奖励。'},
+{name:'深海寻宝',cat:'event',risk:true,desc:'领取深海寻宝探测奖励，并在有空槽时开始新的深海探测。'},
+{name:'矿产大亨',cat:'event',risk:false,desc:'在矿产大亨中挖矿并领取宝箱奖励。'},
+{name:'永恒科技',cat:'c8',risk:true,desc:'自动学习永恒科技，可按分支和优先级持续推进跨服阶段的科技进度。'},
+{name:'永恒演习',cat:'c8',risk:true,desc:'自动参与永恒演习，支持挑战时间、冲榜策略、克制系数、城市技能等配置。'},
+{name:'中立区采集',cat:'c8',risk:true,desc:'在永恒中立区派遣采集队伍。'},
+{name:'建造堡垒电站',cat:'c8',risk:true,desc:'按已确认位置建造永恒堡垒或电站，并查询联盟排行和建筑状态。'},
+{name:'击败混乱之源',cat:'c8',risk:false,desc:'自动攻击混乱之源，可设置三队编队、强化、皮肤等。'},
+{name:'方舟争夺',cat:'c8',risk:true,desc:'自动出征方舟争夺目标。'},
+{name:'宝藏卡车信息',cat:'c8',risk:false,desc:'查询永恒宝藏卡车信息及世界点信息。'},
+{name:'印石数据导出',cat:'tool',risk:false,desc:'导出印石相关数据，便于统计活动资源、排行或后续分析。'},
+{name:'钻石统计',cat:'tool',risk:false,desc:'统计钻石收入与消耗变化，帮助核对活动投入和账号资源波动。'}
+];
+const catName={'all':'全部','battle':'战斗出征','gather':'资源采集','alliance':'联盟互动','daily':'日常福利','event':'限时活动','c8':'跨服玩法','tool':'统计工具'};
+function render(cat){
+  const list=cat==='all'?feats:feats.filter(f=>f.cat===cat);
+  document.getElementById('featGrid').innerHTML=list.map(f=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+        <h3 style="margin:0;font-size:16px">${f.name}</h3>
+        <span class="badge ${f.risk?'badge-risk':'badge-normal'}">${f.risk?'有风险提示':'常规功能'}</span>
+      </div>
+      <div style="font-size:12px;color:var(--primary);margin-bottom:8px">${catName[f.cat]}</div>
+      <p style="font-size:13px">${f.desc}</p>
+    </div>`).join('');
+}
+render('all');
+document.querySelectorAll('#catTabs .tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('#catTabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    render(t.dataset.cat);
+  });
+});
+</script>
+<script src="/auth.js"></script>
+</body>
+</html>

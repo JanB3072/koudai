@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常见问题 - 口袋管家</title>
+<meta name="description" content="口袋管家常见问题解答，涵盖安装、使用、云端托管、账号、价格计费及更新等问题。">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/features">功能介绍</a>
+      <a href="/download">下载</a>
+      <a href="/manual">使用说明</a>
+      <a href="/pricing">价格</a>
+      <a href="/faq" class="active">常见问题</a>
+    </nav>
+    <div class="header-actions"><a href="/login" style="margin-right:14px;color:#4f7cff;font-size:14px;text-decoration:none">登录</a><span class="status-pill"><span class="dot"></span>服务运行中</span></div>
+  </div>
+</header>
+
+<div class="container"><div class="breadcrumb"><a href="/">首页</a><span>/</span>常见问题</div></div>
+
+<section style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">FAQ</div>
+      <h2>快速解答</h2>
+      <p>搜索或按分类浏览，找到你需要的答案</p>
+    </div>
+    <div class="tabs" id="faqTabs">
+      <button class="tab active" data-f="all">全部</button>
+      <button class="tab" data-f="install">安装问题</button>
+      <button class="tab" data-f="use">使用问题</button>
+      <button class="tab" data-f="cloud">云端托管</button>
+      <button class="tab" data-f="account">账号问题</button>
+      <button class="tab" data-f="price">价格与计费</button>
+      <button class="tab" data-f="update">更新问题</button>
+    </div>
+    <div id="faqList"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col"><h4>口袋管家</h4><p style="font-size:13px;line-height:1.8">专业的口袋奇兵智能辅助工具。</p></div>
+      <div class="footer-col"><h4>产品</h4><a href="/features">功能介绍</a><a href="/download">下载</a><a href="/pricing">价格</a></div>
+      <div class="footer-col"><h4>帮助</h4><a href="/manual">使用说明</a><a href="/faq">常见问题</a></div>
+      <div class="footer-col"><h4>其他</h4><a href="/manual#cloud-hang">云端托管说明</a><a href="/pricing#cloud-hang-pricing">尊享版计费</a></div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 口袋管家</div>
+  </div>
+</footer>
+
+<script>
+const faqs=[
+{cat:'install',q:'macOS 首次打开被系统拦截怎么办？',a:'这是 macOS 安全限制，并非安装包损坏。请在 Finder 中按住 Control 点击「口袋管家.app」，选择「打开」后在弹窗中确认；若仍被拦截，进入「系统设置 → 隐私与安全性」，在安全提示处点击「仍要打开」。'},
+{cat:'install',q:'Windows 杀毒软件报毒怎么办？',a:'属于误报，可添加信任或暂时关闭杀毒软件。软件未经商业签名，部分杀软会拦截。如遇 SmartScreen 警告，点击「更多信息」→「仍要运行」。'},
+{cat:'install',q:'Windows 下载时被浏览器拦截怎么办？',a:'Chrome、Edge 等浏览器可能因 EXE 文件未大量下载或未商业签名而拦截。请打开浏览器下载列表，选择「保留」或「继续下载」，下载完成后再运行程序。'},
+{cat:'install',q:'Android 安装时提示「禁止安装」？',a:'普通安卓手机首次安装非应用市场 APK 时，需在系统设置中开启「允许安装未知来源应用」。纯血鸿蒙手机请先在华为应用市场安装卓易通。'},
+{cat:'install',q:'支持哪些操作系统和浏览器？',a:'桌面版支持 macOS 10.15 及以上、Windows 10/11；安卓APP支持 Android 5.0 及以上。浏览器扩展三端通用：桌面用 Chrome（推荐）或 Edge，安卓用狐猴或 Kiwi，iOS 用 Orion。'},
+{cat:'install',q:'浏览器扩展版怎么安装？',a:'扩展版为浏览器扩展压缩包。桌面用 Chrome 或 Edge，安卓用狐猴或 Kiwi，iOS 用 Orion。安装后用同一浏览器打开游戏网页版地址，助手面板会自动出现。详细步骤见下载页。'},
+{cat:'install',q:'iOS（Orion）加载扩展失败怎么办？',a:'Orion 首次须先从扩展商店安装任意一个扩展，之后才能从本地文件加载口袋管家。请先在 Orion → 设置 → Extensions 中从 Chrome 应用商店或 Firefox Add-ons 装一个扩展，再用「从文件安装」加载。'},
+{cat:'install',q:'纯血鸿蒙（HarmonyOS NEXT）能用扩展版吗？',a:'不能。纯血鸿蒙无法安装狐猴、Kiwi 等支持扩展的浏览器，故不支持扩展版；但可使用安卓APP，请先在华为应用市场安装卓易通。'},
+{cat:'use',q:'如何开始使用口袋管家？',a:'先到下载页面获取对应平台版本。安装完成后可打开使用说明查看功能配置。桌面版打开应用后按提示添加游戏账号；安卓版打开应用按提示进入游戏；浏览器扩展则用支持扩展的浏览器加载后打开游戏网页版地址。'},
+{cat:'use',q:'如何管理多个游戏账号？',a:'桌面版原生支持多账号管理，每个账号独立配置、独立运行。在应用内点击「添加账号」即可。'},
+{cat:'use',q:'扩展版桌面用 Chrome 还是 Edge？',a:'本地挂机推荐 Chrome。Edge 也可用，但长时间运行时可能被浏览器休眠或暂停后台标签页影响稳定性。若使用尊享版云端托管，本地离线后由云端接管，无需一直开浏览器。'},
+{cat:'use',q:'功能配置如何同步到其他设备？',a:'登录会员账号后，功能配置会自动同步。换设备登录同一账号即可恢复常用设置。'},
+{cat:'use',q:'为什么游戏辅助里有些功能看不到？',a:'游戏辅助功能会根据当前游戏账号状态动态显示。常见原因：账号所在地图不同、联盟权限不同或职业设置不同。'},
+{cat:'use',q:'辅助功能运行时可以关闭浏览器吗？',a:'普通本地挂机时，桌面版需保持账号运行，安卓APP需保持前台或允许后台运行，浏览器扩展需保持浏览器和游戏标签页打开。尊享版用户可为角色开启云端托管，本地设备无需一直开启。'},
+{cat:'use',q:'辅助功能会被检测到吗？',a:'口袋管家主要帮助减少重复操作，但不同功能风险不同。日常领取、联盟帮助类功能适合常开；战斗、消耗资源、自动购买等功能请先看使用说明的风险提示再开启。'},
+{cat:'use',q:'队列满了，助手会自动召回采集队吗？',a:'会，但仅在部分需立即出征的功能中触发，如夺宝奇兵、联盟机甲、世界 Boss、部分跨服活动等。普通采集、正在返回的队伍不会被反复召回。'},
+{cat:'use',q:'安卓APP如何保持后台运行？',a:'在系统设置中为口袋管家开启后台运行权限，并在电池优化中将应用设为「不受限制」。不同品牌手机设置路径可能不同。'},
+{cat:'cloud',q:'云端托管是什么，和本地挂机有何区别？',a:'本地挂机依赖电脑、浏览器或手机持续运行；云端托管则是本地设备离线后，由口袋管家继续运行当前角色已开启并保存的功能。云端托管不会自动开启所有任务，也不会替你决定资源消耗。'},
+{cat:'cloud',q:'什么账号可以使用云端托管？',a:'需满足四个条件：游戏角色已关联到当前口袋管家账号；该角色使用尊享版；尊享版保持自动续费；切换时有可用云端托管资源。尊享版每小时消耗 1.5 点。'},
+{cat:'cloud',q:'云端托管从哪里开启？',a:'先进入需托管的游戏角色并打开助手面板，点击底部"云端托管"。打开"开启云端托管"，按需选择"自动关闭战斗模式"和"自动打开城防"，最后保存。'},
+{cat:'cloud',q:'为什么开启云端托管后没有马上接管？',a:'属正常情况。保存配置后，只要本地仍在线，云端就不会重复登录；关闭本地游戏后还需约 2 至 3 分钟确认离线并准备接管。期间请勿频繁重新登录。'},
+{cat:'cloud',q:'云端托管会运行哪些功能？',a:'云端会继续运行当前角色已开启并保存的功能，并按选择在接管时关闭战斗模式或打开城防。不会自动打开全部功能，也不会使用未保存的临时改动。'},
+{cat:'cloud',q:'云端托管时可以直接打开游戏吗？',a:'可以。正常打开游戏时，口袋管家会先让云端退出该角色，再交还本地。若看到"云端正在让位"，请等待片刻后重试。'},
+{cat:'cloud',q:'怎样暂停或关闭云端托管？',a:'进入当前角色的云端托管设置，关闭"开启云端托管"并保存。若不再需要尊享版，使用满 24 小时后可切回高级版。'},
+{cat:'account',q:'如何注册会员账号？',a:'点击页面右上角「登录」按钮，切换到「注册」标签页，填写用户名和密码即可。用户名 3-64 位；密码至少 8 位，须包含大写字母、小写字母和数字。'},
+{cat:'account',q:'如何修改密码？',a:'登录官网控制台，打开「账号安全」，输入当前密码和新密码后提交。新密码至少 8 位，须包含大写字母、小写字母和数字。修改后所有已登录设备需重新登录。'},
+{cat:'account',q:'忘记密码怎么办？',a:'控制台修改密码需输入当前密码。若已忘记，请联系管理员重置；目前不支持自助找回。'},
+{cat:'account',q:'会员有什么权益？',a:'高级版可使用设置同步和高级功能，每小时消耗 1 点；尊享版包含高级版能力，并增加本地离线后的云端托管，每小时消耗 1.5 点。'},
+{cat:'account',q:'什么是默认账号？',a:'默认账号是你名下游戏账号中的主要账号，控制台会显示"默认"标记。首次关联自有游戏账号时，系统自动选择一个作为默认账号。默认账号保持自动续费。'},
+{cat:'account',q:'多个游戏账号如何消耗点数？',a:'同一口袋管家账号中，属于你自己的多个游戏账号共用点数余额，但每个游戏账号的订阅会分别消耗点数。多账号同时使用时，总可用时间相应缩短。'},
+{cat:'price',q:'如何购买和兑换套餐？',a:'请联系所在用户群管理员选择套餐。取得激活码后，登录官网控制台，在"激活码兑换"中提交即可。'},
+{cat:'update',q:'如何更新到最新版本？',a:'桌面版和安卓 APK 版会自动检测更新，有新版本时提示下载。浏览器扩展版需手动更新：重新下载压缩包，删除旧扩展后用新解压文件夹重新加载。'},
+{cat:'update',q:'更新后配置会丢失吗？',a:'不会。正常更新不影响已有设置。登录会员账号后，常用设置可自动恢复。'}
+];
+function renderFaq(cat){
+  const list=cat==='all'?faqs:faqs.filter(f=>f.cat===cat);
+  document.getElementById('faqList').innerHTML=list.map((f,i)=>`
+    <div class="faq-item" id="faq-${i}">
+      <div class="faq-q">${f.q}</div>
+      <div class="faq-a">${f.a}</div>
+    </div>`).join('');
+  document.querySelectorAll('.faq-q').forEach(q=>{
+    q.addEventListener('click',()=>q.parentElement.classList.toggle('open'));
+  });
+}
+renderFaq('all');
+document.querySelectorAll('#faqTabs .tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('#faqTabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    renderFaq(t.dataset.f);
+  });
+});
+</script>
+<script src="/auth.js"></script>
+</body>
+</html>

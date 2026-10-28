@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>账号管理 - 口袋管家后台</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  html,body{height:100%}
+  body{margin:0;background:#f3f4f6;overflow:hidden}
+  .admin-layout{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:220px;background:#1a1f36;color:#fff;padding:20px 0;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;box-sizing:border-box}
+  .sidebar .brand{padding:0 20px 20px;font-size:18px;font-weight:700;border-bottom:1px solid #2a2f4a}
+  .sidebar a{display:block;padding:12px 20px;color:#9ca3af;font-size:14px;text-decoration:none;transition:.2s}
+  .sidebar a:hover,.sidebar a.active{background:#2a2f4a;color:#fff}
+  .main{flex:1;height:100vh;padding:24px;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+  .topbar h2{font-size:22px}
+  .topbar .user-info{font-size:14px;color:#6b7280}
+  .topbar .user-info a{color:#ef4444;margin-left:12px}
+  .panel{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:24px}
+  .panel-head{padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+  .panel-head h3{font-size:16px}
+  .panel-body{padding:20px}
+  .form-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px}
+  .form-row.full{grid-template-columns:1fr}
+  .form-row.two{grid-template-columns:repeat(2,1fr)}
+  input,select,textarea{padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;width:100%;font-family:inherit}
+  textarea{resize:vertical;min-height:60px}
+  .btn{padding:8px 16px;border:none;border-radius:6px;font-size:13px;cursor:pointer;transition:.2s}
+  .btn-primary{background:#4f7cff;color:#fff}.btn-primary:hover{background:#3a5fd4}
+  .btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+  .btn-sm{padding:4px 10px;font-size:12px}
+  .btn-ghost{background:#e5e7eb;color:#374151}.btn-ghost:hover{background:#d1d5db}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:12px 16px;text-align:left;font-size:14px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+  th{background:#f9fafb;color:#6b7280;font-weight:500;font-size:12px}
+  .tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:500}
+  .tag-ok{background:#d1fae5;color:#065f46}
+  .tag-expired{background:#fee2e2;color:#991b1b}
+  .tag-ban{background:#fef3c7;color:#92400e}
+  .avatar{width:36px;height:36px;border-radius:8px;object-fit:cover;background:#eee}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .msg{margin-left:12px;font-size:13px}
+  .msg-ok{color:#10b981}.msg-err{color:#ef4444}
+  .hint{font-size:13px;color:#6b7280;margin:0 0 14px;background:#f9fafb;padding:10px 12px;border-radius:6px;border:1px solid #e5e7eb;line-height:1.6}
+  .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:50}
+  .modal{background:#fff;border-radius:12px;width:680px;max-width:94vw;max-height:92vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #e5e7eb}
+  .modal-head h3{font-size:16px}
+  .modal-head .close{background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;line-height:1}
+  .modal-body{padding:20px}
+  .modal-foot{padding:16px 20px;border-top:1px solid #e5e7eb;display:flex;align-items:center;gap:12px}
+  .table-scroll{flex:1;min-height:0;overflow:auto;border-bottom:1px solid #e5e7eb}
+  .pager{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;font-size:13px;color:#6b7280}
+  .pager-btns{display:inline-flex;gap:8px}
+  .pager a{text-decoration:none}
+  .list-panel{flex:1;display:flex;flex-direction:column;min-height:0;margin-bottom:0}
+  .list-panel .panel-head{flex-shrink:0}
+  .list-panel .pager{flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="brand">口袋管家后台</div>
+    <a href="/admin">仪表盘</a>
+    <a href="/admin/users">用户管理</a>
+    <a href="/admin/accounts" class="active">账号管理</a>
+    <a href="/admin/logs">扣费流水</a>
+    <a href="/admin/recharge">充值记录</a>
+    <a href="/admin/pricing">收费配置</a>
+    <a href="/admin/settings">账号设置</a>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <h2>账号管理</h2>
+      <div class="user-info">欢迎，<%= admin %> | <a href="/admin/logout">退出</a></div>
+    </div>
+
+    <div class="panel list-panel">
+      <div class="panel-head"><h3>账号列表 (<%= total %>)</h3></div>
+      <div class="table-scroll"><table>
+        <thead><tr>
+          <th>头像</th><th>ID</th><th>角色名</th><th>UID</th><th>区服</th><th>所属用户</th>
+          <th>最后登录</th><th>token过期</th><th>状态</th><th>操作</th>
+        </tr></thead>
+        <tbody>
+          <% accounts.forEach(function(a){ %>
+          <tr>
+            <td><% if(a.avatar){ %><img class="avatar" src="<%= a.avatar %>" onerror="this.style.visibility='hidden'"><% } else { %>-<% } %></td>
+            <td class="mono"><%= a.acc_id %></td>
+            <td><%= a.name %></td>
+            <td class="mono"><%= a.uid %></td>
+            <td><%= a.server_id %></td>
+            <td><%= a.owner || '-' %></td>
+            <td class="mono"><%= a.last_login_at ? fmtDateTime(a.last_login_at) : '-' %></td>
+            <td class="mono"><%= a.token_expire_at ? fmtDateTime(a.token_expire_at) : '-' %></td>
+            <td><span class="tag <%= a.status==='正常'?'tag-ok':(a.status==='已封禁'?'tag-ban':'tag-expired') %>"><%= a.status %></span></td>
+            <td>
+              <button class="btn btn-sm btn-ghost" onclick="openEdit('<%= a.acc_id || a.id %>')">编辑</button>
+              <button class="btn btn-sm btn-danger" onclick="delAccount('<%= a.acc_id || a.id %>')">删除</button>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table></div>
+      <div class="pager">
+        <span>共 <%= total %> 条 · 第 <%= page %> / <%= totalPages %> 页</span>
+        <span class="pager-btns">
+          <% if(page>1){ %><a class="btn btn-sm btn-ghost" href="?page=<%= page-1 %>">上一页</a><% } %>
+          <% if(page<totalPages){ %><a class="btn btn-sm btn-ghost" href="?page=<%= page+1 %>">下一页</a><% } %>
+        </span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 编辑弹窗 -->
+<div id="modal" class="modal-mask" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>编辑账号 <span id="mId" class="mono"></span></h3>
+      <button class="close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="editForm">
+        <input type="hidden" name="acc_id">
+        <div class="form-row">
+          <select name="userId" required>
+            <option value="">选择所属用户</option>
+            <% users.forEach(function(u){ %><option value="<%= u.id %>"><%= u.username %> (ID:<%= u.id %>)</option><% }) %>
+          </select>
+          <input type="text" name="name" placeholder="角色名">
+          <input type="text" name="uid" placeholder="游戏UID">
+          <input type="text" name="serverId" placeholder="区服ID">
+          <select name="status">
+            <option value="正常">正常</option>
+            <option value="已封禁">已封禁</option>
+            <option value="已过期">已过期</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <input type="text" name="profileDir" placeholder="配置目录">
+          <input type="number" name="lastLoginAt" placeholder="最后登录(ms)">
+          <input type="number" name="tokenExpireAt" placeholder="token过期(ms)">
+          <input type="text" name="avatar" placeholder="头像URL">
+          <input type="text" name="qqAccessToken" placeholder="QQ accessToken">
+        </div>
+        <div class="form-row two">
+          <input type="text" name="qqOpenid" placeholder="QQ openid">
+          <input type="text" name="serverInfoToken" placeholder="serverInfoToken">
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <span id="editMsg" class="msg"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const ACCOUNTS = <%- JSON.stringify(accounts) %>;
+let currentAccId = '';
+function fmt(ms){ const d = new Date(Number(ms)); return isNaN(d.getTime()) ? '-' : d.toLocaleString('zh-CN'); }
+const $ = (s, r=document) => r.querySelector(s);
+
+function openEdit(accId){
+  const a = ACCOUNTS.find(x => String(x.acc_id || x.id) === String(accId)); if(!a) return;
+  currentAccId = accId;
+  const f = $('#editForm');
+  f.acc_id.value = currentAccId;
+  f.userId.value = a.user_id || '';
+  f.name.value = a.name || '';
+  f.uid.value = a.uid || '';
+  f.serverId.value = a.server_id || '';
+  f.status.value = a.status || '正常';
+  f.profileDir.value = a.profile_dir || '';
+  f.lastLoginAt.value = a.last_login_at || '';
+  f.tokenExpireAt.value = a.token_expire_at || '';
+  f.avatar.value = a.avatar || '';
+  f.qqAccessToken.value = a.qq_access_token || '';
+  f.qqOpenid.value = a.qq_openid || '';
+  f.serverInfoToken.value = a.server_info_token || '';
+  $('#mId').textContent = currentAccId;
+  $('#editMsg').textContent = '';
+  $('#modal').style.display = 'flex';
+}
+function closeModal(){ $('#modal').style.display = 'none'; }
+
+async function saveEdit(){
+  const f = $('#editForm');
+  const id = currentAccId;
+  const body = {
+    userId: f.userId.value, name: f.name.value, uid: f.uid.value,
+    serverId: f.serverId.value, status: f.status.value, profileDir: f.profileDir.value,
+    lastLoginAt: f.lastLoginAt.value ? Number(f.lastLoginAt.value) : 0,
+    tokenExpireAt: f.tokenExpireAt.value ? Number(f.tokenExpireAt.value) : 0,
+    avatar: f.avatar.value, qqAccessToken: f.qqAccessToken.value,
+    qqOpenid: f.qqOpenid.value, serverInfoToken: f.serverInfoToken.value
+  };
+  const r = await fetch('/api/accounts/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json();
+  if(j.success){ $('#editMsg').className='msg msg-ok'; $('#editMsg').textContent='已保存'; setTimeout(()=>location.reload(), 500); }
+  else { $('#editMsg').className='msg msg-err'; $('#editMsg').textContent = j.message || '失败'; }
+}
+
+async function delAccount(accId){
+  if(!confirm('确认删除账号 ' + accId + '？')) return;
+  const r = await fetch('/api/accounts/' + accId, {method:'DELETE'});
+  const j = await r.json();
+  if(j.success){ location.reload(); }
+  else alert(j.message || '删除失败');
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 / 注册 - 口袋管家</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  body{background:#f3f4f6}
+  .auth-wrap{max-width:420px;margin:48px auto;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .auth-tabs{display:flex}
+  .auth-tabs button{flex:1;padding:16px;font-size:15px;border:none;background:#f9fafb;color:#6b7280;cursor:pointer;transition:.2s}
+  .auth-tabs button.active{background:#fff;color:#4f7cff;font-weight:700;box-shadow:inset 0 -2px 0 #4f7cff}
+  .auth-body{padding:28px 24px}
+  .auth-form{display:none}
+  .auth-form.active{display:block}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;color:#374151;margin-bottom:6px}
+  .field input{width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box}
+  .field input:focus{outline:none;border-color:#4f7cff}
+  .field .opt{color:#9ca3af;font-size:12px;margin-left:6px}
+  .btn-block{width:100%;padding:12px;border:none;border-radius:8px;background:#4f7cff;color:#fff;font-size:15px;cursor:pointer;transition:.2s}
+  .btn-block:hover{background:#3a5fd4}
+  .msg{font-size:13px;margin-top:14px;min-height:18px}
+  .msg-ok{color:#10b981}.msg-err{color:#ef4444}
+  .hint{font-size:12px;color:#9ca3af;margin-top:4px}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/features">功能介绍</a>
+      <a href="/download">下载</a>
+      <a href="/manual">使用说明</a>
+      <a href="/pricing">价格</a>
+      <a href="/faq">常见问题</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="auth-wrap">
+    <div class="auth-tabs">
+      <button id="tabLogin" class="active" onclick="switchTab('login')">登录</button>
+      <button id="tabRegister" onclick="switchTab('register')">注册</button>
+    </div>
+    <div class="auth-body">
+      <form id="loginForm" class="auth-form active" onsubmit="return doLogin(event)">
+        <div class="field">
+          <label>用户名</label>
+          <input type="text" id="loginUser" autocomplete="username" placeholder="请输入用户名">
+        </div>
+        <div class="field">
+          <label>密码</label>
+          <input type="password" id="loginPwd" autocomplete="current-password" placeholder="请输入密码">
+        </div>
+        <button type="submit" class="btn-block">登录</button>
+        <div id="loginMsg" class="msg"></div>
+      </form>
+
+      <form id="registerForm" class="auth-form" onsubmit="return doRegister(event)">
+        <div class="field">
+          <label>用户名</label>
+          <input type="text" id="regUser" autocomplete="username" placeholder="3-64 位">
+        </div>
+        <div class="field">
+          <label>密码</label>
+          <input type="password" id="regPwd" autocomplete="new-password" placeholder="至少 8 位">
+        </div>
+        <div class="field">
+          <label>邀请码<span class="opt">（选填）</span></label>
+          <input type="text" id="regInvite" placeholder="如有邀请码可填写，不填也可注册">
+          <div class="hint">邀请码非必填，留空也能正常注册。</div>
+        </div>
+        <button type="submit" class="btn-block">注册</button>
+        <div id="registerMsg" class="msg"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function kdSetToken(t){ try{ if(t) localStorage.setItem('koudai_token', t); else localStorage.removeItem('koudai_token'); }catch(e){} }
+function switchTab(t){
+  document.getElementById('tabLogin').classList.toggle('active', t==='login');
+  document.getElementById('tabRegister').classList.toggle('active', t==='register');
+  document.getElementById('loginForm').classList.toggle('active', t==='login');
+  document.getElementById('registerForm').classList.toggle('active', t==='register');
+}
+async function doLogin(e){
+  e.preventDefault();
+  const msg=document.getElementById('loginMsg');
+  msg.className='msg';msg.textContent='';
+  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('koudai_token')},body:JSON.stringify({username:document.getElementById('loginUser').value,password:document.getElementById('loginPwd').value})});
+  const j=await r.json();
+  if(j.success){ kdSetToken(j.token); location.href='/'; } else { msg.className='msg msg-err';msg.textContent=j.message||'登录失败'; }
+  return false;
+}
+async function doRegister(e){
+  e.preventDefault();
+  const msg=document.getElementById('registerMsg');
+  msg.className='msg';msg.textContent='';
+  const user=document.getElementById('regUser').value;
+  const pwd=document.getElementById('regPwd').value;
+  const invite=document.getElementById('regInvite').value.trim();
+  const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pwd,inviteCode:invite})});
+  const j=await r.json();
+  if(!j.success){ msg.className='msg msg-err';msg.textContent=j.message||'注册失败'; return false; }
+  // 注册成功后自动登录
+  const lr=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('koudai_token')},body:JSON.stringify({username:user,password:pwd})});
+  const lj=await lr.json();
+  if(lj.success){ kdSetToken(lj.token); location.href='/'; } else { msg.className='msg msg-ok';msg.textContent='注册成功，请登录'; switchTab('login'); }
+  return false;
+}
+</script>
+</body>
+</html>

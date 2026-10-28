@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>控制台 - 口袋管家后台</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  html,body{height:100%}
+  body{margin:0;background:#f3f4f6;overflow:hidden}
+  .admin-layout{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:220px;background:#1a1f36;color:#fff;padding:20px 0;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;box-sizing:border-box}
+  .sidebar .brand{padding:0 20px 20px;font-size:18px;font-weight:700;border-bottom:1px solid #2a2f4a}
+  .sidebar a{display:block;padding:12px 20px;color:#9ca3af;font-size:14px;text-decoration:none;transition:.2s}
+  .sidebar a:hover,.sidebar a.active{background:#2a2f4a;color:#fff}
+  .sidebar a i{margin-right:8px}
+  .main{flex:1;height:100vh;padding:24px;display:flex;flex-direction:column;overflow-y:auto;box-sizing:border-box}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+  .topbar h2{font-size:22px}
+  .topbar .user-info{font-size:14px;color:#6b7280}
+  .topbar .user-info a{color:#ef4444;margin-left:12px}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .stat-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .stat-card .label{font-size:13px;color:#6b7280;margin-bottom:8px}
+  .stat-card .value{font-size:28px;font-weight:700;color:#1a1f36}
+  .stat-card.blue .value{color:#4f7cff}
+  .stat-card.green .value{color:#10b981}
+  .stat-card.orange .value{color:#f59e0b}
+  .stat-card.purple .value{color:#6c5ce7}
+  .panel{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .panel-head{padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+  .panel-head h3{font-size:16px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:12px 20px;text-align:left;font-size:14px;border-bottom:1px solid #f3f4f6}
+  th{background:#f9fafb;color:#6b7280;font-weight:500;font-size:12px;text-transform:uppercase}
+  .tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:500}
+  .tag-ok{background:#d1fae5;color:#065f46}
+  .tag-expired{background:#fee2e2;color:#991b1b}
+  .tag-vip{background:#ede9fe;color:#5b21b6}
+  .tag-premium{background:#dbeafe;color:#1e40af}
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="brand">口袋管家后台</div>
+    <a href="/admin" class="active">仪表盘</a>
+    <a href="/admin/users">用户管理</a>
+    <a href="/admin/accounts">账号管理</a>
+    <a href="/admin/logs">扣费流水</a>
+    <a href="/admin/recharge">充值记录</a>
+    <a href="/admin/pricing">收费配置</a>
+    <a href="/admin/settings">账号设置</a>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <h2>仪表盘</h2>
+      <div class="user-info">欢迎，<%= admin %> | <a href="/admin/logout">退出</a></div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card blue"><div class="label">总用户数</div><div class="value"><%= totalUsers %></div></div>
+      <div class="stat-card green"><div class="label">正常用户</div><div class="value"><%= activeUsers %></div></div>
+      <div class="stat-card orange"><div class="label">总点数</div><div class="value"><%= totalPoints.toLocaleString() %></div></div>
+      <div class="stat-card purple"><div class="label">尊享版用户</div><div class="value"><%= vipCount %></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h3>最近用户</h3>
+        <a href="/admin/users" style="font-size:13px;color:#4f7cff">查看全部</a>
+      </div>
+      <table>
+        <thead><tr><th>ID</th><th>用户名</th><th>游戏角色</th><th>套餐</th><th>点数</th><th>状态</th><th>注册时间</th></tr></thead>
+        <tbody>
+          <% users.slice(0,8).forEach(function(u){ %>
+          <tr>
+            <td><%= u.id %></td>
+            <td><%= u.username %></td>
+            <td><%= u.gameRole %></td>
+            <td><span class="tag <%= u.plan==='尊享版'?'tag-vip':'tag-premium' %>"><%= u.plan %></span></td>
+            <td><%= u.points %></td>
+            <td><span class="tag <%= u.status==='正常'?'tag-ok':'tag-expired' %>"><%= u.status %></span></td>
+            <td><%= u.createdAt %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>收费配置 - 口袋管家后台</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  html,body{height:100%}
+  body{margin:0;background:#f3f4f6;overflow:hidden}
+  .admin-layout{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:220px;background:#1a1f36;color:#fff;padding:20px 0;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;box-sizing:border-box}
+  .sidebar .brand{padding:0 20px 20px;font-size:18px;font-weight:700;border-bottom:1px solid #2a2f4a}
+  .sidebar a{display:block;padding:12px 20px;color:#9ca3af;font-size:14px;text-decoration:none;transition:.2s}
+  .sidebar a:hover,.sidebar a.active{background:#2a2f4a;color:#fff}
+  .main{flex:1;height:100vh;padding:24px;display:flex;flex-direction:column;overflow-y:auto;box-sizing:border-box}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+  .topbar h2{font-size:22px}
+  .topbar .user-info{font-size:14px;color:#6b7280}
+  .topbar .user-info a{color:#ef4444;margin-left:12px}
+  .panel{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:24px}
+  .panel-head{padding:16px 20px;border-bottom:1px solid #e5e7eb}
+  .panel-head h3{font-size:16px}
+  .panel-body{padding:20px}
+  .card-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+  .price-card{border:1px solid #e5e7eb;border-radius:10px;padding:16px}
+  .price-card h4{font-size:14px;color:#6b7280;margin-bottom:12px}
+  .form-group{margin-bottom:10px}
+  .form-group label{display:block;font-size:12px;color:#6b7280;margin-bottom:4px}
+  .form-group input{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px}
+  .btn{padding:10px 24px;border:none;border-radius:6px;font-size:14px;cursor:pointer;transition:.2s}
+  .btn-primary{background:#4f7cff;color:#fff}.btn-primary:hover{background:#3a5fd4}
+  .plan-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .plan-card{border:1px solid #e5e7eb;border-radius:10px;padding:16px}
+  .plan-card h4{margin-bottom:12px}
+  .alert{background:#d1fae5;color:#065f46;padding:10px 16px;border-radius:8px;font-size:13px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="brand">口袋管家后台</div>
+    <a href="/admin">仪表盘</a>
+    <a href="/admin/users">用户管理</a>
+    <a href="/admin/accounts">账号管理</a>
+    <a href="/admin/logs">扣费流水</a>
+    <a href="/admin/recharge">充值记录</a>
+    <a href="/admin/pricing" class="active">收费配置</a>
+    <a href="/admin/settings">账号设置</a>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <h2>收费规则配置</h2>
+      <div class="user-info">欢迎，<%= admin %> | <a href="/admin/logout">退出</a></div>
+    </div>
+
+    <% if(saved) { %><div class="alert">配置已保存成功！</div><% } %>
+
+    <form method="POST" action="/admin/pricing/save">
+      <div class="panel">
+        <div class="panel-head"><h3>点数套餐</h3></div>
+        <div class="panel-body">
+          <div class="card-grid">
+            <div class="price-card">
+              <h4>月卡</h4>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="m_price" value="<%= pricing.monthlyCard.price %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="m_points" value="<%= pricing.monthlyCard.points %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="m_days" value="<%= pricing.monthlyCard.days %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="m_save" value="<%= pricing.monthlyCard.save %>"></div>
+            </div>
+            <div class="price-card">
+              <h4>季卡</h4>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="q_price" value="<%= pricing.quarterlyCard.price %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="q_points" value="<%= pricing.quarterlyCard.points %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="q_days" value="<%= pricing.quarterlyCard.days %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="q_save" value="<%= pricing.quarterlyCard.save %>"></div>
+            </div>
+            <div class="price-card">
+              <h4>半年卡</h4>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="h_price" value="<%= pricing.halfYearCard.price %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="h_points" value="<%= pricing.halfYearCard.points %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="h_days" value="<%= pricing.halfYearCard.days %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="h_save" value="<%= pricing.halfYearCard.save %>"></div>
+            </div>
+            <div class="price-card">
+              <h4>年卡</h4>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="y_price" value="<%= pricing.yearlyCard.price %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="y_points" value="<%= pricing.yearlyCard.points %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="y_days" value="<%= pricing.yearlyCard.days %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="y_save" value="<%= pricing.yearlyCard.save %>"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>计费规则（保存后实时生效）</h3></div>
+        <div class="panel-body">
+          <p style="font-size:13px;color:#6b7280;background:#f9fafb;padding:10px 12px;border-radius:6px;border:1px solid #e5e7eb;margin:0 0 16px;line-height:1.7">
+            工具运行期间按「每小时点数」以真实运行小时数计费（由工具通过 <code>/api/points/deduct</code> 上报）；
+            无论是否启用，每个用户每天都有「每日最低消费」，由结算接口 <code>/api/points/settle</code> 补足。修改后点击保存立即生效。
+          </p>
+          <div class="plan-row">
+            <div class="plan-card">
+              <h4>每小时点数</h4>
+              <div class="form-group"><label>每小时消耗 (点)</label><input type="number" step="0.1" name="enabled_rate" value="<%= billing.enabledRatePerHour %>"></div>
+              <p style="font-size:12px;color:#6b7280;margin-top:8px">工具运行期间计费，例如 1 表示每小时扣 1 点（满 24 小时 = 24 点/天）。</p>
+            </div>
+            <div class="plan-card">
+              <h4>每天满额点数</h4>
+              <div class="form-group"><label>每天消耗 (点)</label><input type="number" step="0.1" name="disabled_rate" value="<%= billing.disabledRatePerDay %>"></div>
+              <p style="font-size:12px;color:#6b7280;margin-top:8px">工具连续运行 24 小时对应的点数（= 每小时点数 × 24），约 <%= (billing.disabledRatePerDay/24).toFixed(2) %> 点/小时。</p>
+            </div>
+            <div class="plan-card">
+              <h4>每日最低消费</h4>
+              <div class="form-group"><label>每天最低 (点)</label><input type="number" step="0.1" name="daily_minimum" value="<%= billing.dailyMinimum %>"></div>
+              <p style="font-size:12px;color:#6b7280;margin-top:8px">当日实际使用不足该值时，按该值收取；已达标则不再补扣。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">保存配置</button>
+    </form>
+  </main>
+</div>
+</body>
+</html>

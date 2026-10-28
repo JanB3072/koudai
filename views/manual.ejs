@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>使用说明 - 口袋管家</title>
+<meta name="description" content="口袋管家使用说明，包含云端托管开启步骤、界面操作指南及各功能详细配置说明。">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/features">功能介绍</a>
+      <a href="/download">下载</a>
+      <a href="/manual" class="active">使用说明</a>
+      <a href="/pricing">价格</a>
+      <a href="/faq">常见问题</a>
+    </nav>
+    <div class="header-actions"><a href="/login" style="margin-right:14px;color:#4f7cff;font-size:14px;text-decoration:none">登录</a><span class="status-pill"><span class="dot"></span>服务运行中</span></div>
+  </div>
+</header>
+
+<div class="container"><div class="breadcrumb"><a href="/">首页</a><span>/</span>使用说明</div></div>
+
+<section style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">User Manual</div>
+      <h2>不会设置，先来这里</h2>
+      <p>每项功能均说明适用场景、开启前检查、会做什么、不会做什么，以及需注意的消耗与风险。</p>
+    </div>
+    <div class="grid grid-3" style="text-align:center;margin-bottom:32px">
+      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--primary)">94</div><p>功能项</p></div>
+      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--accent)">7</div><p>大分类</p></div>
+      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--warning)">48</div><p>风险提示</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="container manual-layout">
+  <nav class="manual-nav">
+    <a href="#cloud-hang">云端托管说明</a>
+    <a href="#panel">界面操作指南</a>
+    <a href="#features">功能详细说明</a>
+  </nav>
+  <div>
+    <div id="cloud-hang" class="content-block">
+      <span class="badge badge-normal">Cloud Play</span>
+      <h3>云端托管使用说明</h3>
+      <p>云端托管适合不方便一直开启电脑、浏览器或手机的用户。为当前游戏角色开启并保存后，本地离线约 2 至 3 分钟，口袋管家将接管该角色，继续运行已开启并保存的功能。</p>
+      <p><strong>提示：</strong>云端托管并非"一键完成所有任务"，不会替你自动开启全部功能，也不会替你决定钻石、体力、道具等资源如何消耗。</p>
+      <h4>开启前检查</h4>
+      <ul>
+        <li><strong>角色已关联</strong> — 需托管的游戏角色必须已添加到当前口袋管家账号。</li>
+        <li><strong>已开通尊享版</strong> — 云端托管属尊享版能力，按 1.5 点/小时计费，需保持自动续费。</li>
+        <li><strong>功能已配置</strong> — 先在本地开启所需功能，完成设置并保存。</li>
+        <li><strong>余额与资源充足</strong> — 确认点数余额足够，提示资源不足时联系管理员。</li>
+      </ul>
+      <h4>首次开启步骤</h4>
+      <ol style="padding-left:20px">
+        <li>进入需托管的角色，打开助手面板（电脑右键，手机长按半秒）。</li>
+        <li>点击底部"云端托管"，若非尊享版请先切换（需开启自动续费）。</li>
+        <li>按需开启"自动关闭战斗模式"和"自动打开城防"。</li>
+        <li>打开"开启云端托管"并保存，底部显示"云端托管 · 已开启"即为生效。</li>
+        <li>关闭本地游戏，离线约 2 至 3 分钟后查看状态确认接管。</li>
+      </ol>
+      <h4>状态说明</h4>
+      <div class="state-item"><span class="state-dot" style="background:#9ca3af"></span><div><strong>未开启</strong><br><span style="font-size:13px;color:var(--text-light)">当前角色未使用云端托管。</span></div></div>
+      <div class="state-item"><span class="state-dot" style="background:var(--warning)"></span><div><strong>已开启，等待离线</strong><br><span style="font-size:13px;color:var(--text-light)">配置已保存，本地仍在线或刚退出，关闭本地后等待约 2 至 3 分钟。</span></div></div>
+      <div class="state-item"><span class="state-dot" style="background:var(--primary)"></span><div><strong>云端准备启动</strong><br><span style="font-size:13px;color:var(--text-light)">正在为角色准备运行，请勿反复开关。</span></div></div>
+      <div class="state-item"><span class="state-dot" style="background:var(--success)"></span><div><strong>云端托管中</strong><br><span style="font-size:13px;color:var(--text-light)">云端已接管，可在操作日志查看带云端标识的记录。</span></div></div>
+      <div class="state-item"><span class="state-dot" style="background:var(--accent)"></span><div><strong>云端正在让位</strong><br><span style="font-size:13px;color:var(--text-light)">检测到你回来登录，正在退出角色，等待后再进入。</span></div></div>
+      <h4>停止云端托管</h4>
+      <p>进入云端托管设置，关闭"开启云端托管"并保存。尊享版使用满 24 小时后可切回高级版，切换后云端托管将停止。</p>
+    </div>
+
+    <div id="panel" class="content-block">
+      <span class="badge badge-normal">Panel Guide</span>
+      <h3>界面操作指南</h3>
+      <h4>顶部工具栏</h4>
+      <ul>
+        <li><strong>搜索</strong> — 输入功能名或关键词，快速定位主面板功能。</li>
+        <li><strong>战斗模式</strong> — 进入战斗场景时使用，开启后部分高级功能暂停响应。</li>
+        <li><strong>保护/快攻</strong> — 快速开启免受攻击保护或快攻三连。</li>
+        <li><strong>自动刷新</strong> — 可设置每日固定时间刷新页面，适合长时间挂机。</li>
+      </ul>
+      <h4>底部操作区</h4>
+      <ul>
+        <li><strong>账号信息</strong> — 查看当前登录状态、版本类型及剩余天数。</li>
+        <li><strong>云端托管</strong> — 查看当前角色是否已开启、等待接管或正在运行。</li>
+        <li><strong>操作日志</strong> — 查看功能执行记录，带云端标识的来自云端托管。</li>
+        <li><strong>断线重连</strong> — 控制掉线后是否自动重启，长时间挂机时开启。</li>
+      </ul>
+      <h4>功能分类区</h4>
+      <p>按战斗出征、资源采集、联盟互动、日常福利、限时活动、跨服玩法、统计工具分组。</p>
+      <ul>
+        <li><strong>勾选开关</strong> — 开启或停止单个功能。</li>
+        <li><strong>点击功能名</strong> — 绿色功能名可点击，进入设置面板。</li>
+        <li><strong>分类全选</strong> — 批量启停一组功能，首次不建议一次全开。</li>
+      </ul>
+    </div>
+
+    <div id="features" class="content-block">
+      <span class="badge badge-normal">功能说明</span>
+      <h3>功能详细说明</h3>
+      <p style="margin-bottom:16px">以下列出主要功能的详细说明，点击分类标签筛选。</p>
+      <div class="tabs" id="mfTabs">
+        <button class="tab active" data-m="battle">战斗出征</button>
+        <button class="tab" data-m="gather">资源采集</button>
+        <button class="tab" data-m="alliance">联盟互动</button>
+        <button class="tab" data-m="daily">日常福利</button>
+        <button class="tab" data-m="event">限时活动</button>
+        <button class="tab" data-m="c8">跨服玩法</button>
+      </div>
+      <div id="mfContent"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col"><h4>口袋管家</h4><p style="font-size:13px;line-height:1.8">专业的口袋奇兵智能辅助工具。</p></div>
+      <div class="footer-col"><h4>产品</h4><a href="/features">功能介绍</a><a href="/download">下载</a><a href="/pricing">价格</a></div>
+      <div class="footer-col"><h4>帮助</h4><a href="/manual">使用说明</a><a href="/faq">常见问题</a></div>
+      <div class="footer-col"><h4>其他</h4><a href="/manual#cloud-hang">云端托管说明</a><a href="/pricing#cloud-hang-pricing">尊享版计费</a></div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 口袋管家</div>
+  </div>
+</footer>
+
+<script>
+const mfeats={
+battle:[
+{name:'扫荡黑暗敌军',desc:'自动搜寻并攻击黑暗敌军或活动怪，支持怪物组、等级范围、普通区/中立区、多队列、五连及体力策略。',scene:'适合日常打野、活动任务、体力消耗及多账号挂机。',check:['确认目标地图正确','设置可用编队','确认体力预算','活动怪先小次数试跑'],tips:'首次配置建议先设 3-5 次观察日志，确认目标、等级、体力及队列符合预期后再提高次数。',warn:'自动补体力、五连攻击及多队列会显著加快体力消耗。'},
+{name:'自动发起集结',desc:'自动发起集结类攻击，适用于联盟活动、战锤或活动怪等需持续开车的场景。',scene:'适合负责开集结、需重复发起同类目标时使用。',check:['确认联盟成员在线及集结时间合适','设置可用编队并确认兵力足够','确认目标类型、等级及活动地图正确'],tips:'联盟活动前先与成员确认集结目标，避免自动发起后无人响应。',warn:'会占用行军队列及联盟成员时间，错误目标可能浪费活动次数。'},
+{name:'自动加入集结',desc:'自动加入联盟成员发起的集结，可按目标类型选择战锤、难民营、军团据点等。',scene:'适合联盟成员频繁开集结、需自动上车时使用。',check:['确认已加入联盟并能看到集结列表','确认有空闲队列及可用兵力','按联盟目标选择要加入的集结类型'],tips:'联盟开车多时很实用，但采集号建议至少保留一个空队列。',warn:''},
+{name:'免受攻击守护',desc:'自动处理免战保护相关操作，适合被攻击、抵近或迁城风险较高时快速响应。',scene:'适合跨服战、基地战或高风险挂机时使用。',check:['确认背包有可用保护道具','确认当前场景允许使用保护','设置触发类型前先理解风险来源'],tips:'高风险挂机前先手动确认保护道具数量；参战账号勿盲目开启全部触发。',warn:'会消耗免战或保护类道具，错误配置可能影响主动战斗安排。'}
+],
+gather:[
+{name:'自动采集资源',desc:'自动派队采集普通田、机械田、遗迹田等资源点，可保留机动队列并临时切换采集技能。',scene:'适合日常资源采集及多账号挂机。',check:['确认采集目标类型和地图','设置可用采集编队','确认保留机动队列数量'],tips:'建议从 1-2 队开始，观察一轮日志后再调整。',warn:''},
+{name:'智能造兵',desc:'自动训练指定兵种，支持陆海空选择及智能造兵，适合日常补兵与活动训练任务。',scene:'适合日常补兵和活动训练任务。',check:['确认兵营等级满足训练条件','确认资源和加速道具足够','设置目标兵种和数量'],tips:'建议先小批量试跑，确认资源消耗符合预期。',warn:'会消耗资源和加速道具。'},
+{name:'军官院校',desc:'自动学习军官院校天赋，支持见习军官、进阶天赋、通用技巧、兵种克制等。',scene:'适合提升军官属性和兵种克制。',check:['确认天赋点和资源足够','确认学习优先级','钻石加速前确认预算'],tips:'建议先设置好优先级，避免消耗在不需要的天赋上。',warn:'钻石加速会消耗钻石。'}
+],
+alliance:[
+{name:'联盟捐献',desc:'自动处理联盟科技、联盟技能、世界遗址、联盟建筑等捐献入口，稳定获取联盟贡献。',scene:'适合日常获取联盟贡献。',check:['确认捐献资源足够','确认捐献优先级','联盟活动期间注意预留资源'],tips:'建议先设置捐献上限，避免资源被一次性捐空。',warn:'会消耗联盟捐献相关资源。'},
+{name:'捐献挑战联盟机甲',desc:'自动处理联盟机甲碎片捐献与挑战，可设置捐献数量、攻击编队、强化、皮肤等。',scene:'适合联盟机甲活动期间自动参与。',check:['确认联盟机甲活动已开启','设置可用战斗编队','确认碎片和体力预算'],tips:'联盟有集火时间安排时，按联盟时间开启。',warn:'会消耗体力和碎片。'}
+],
+daily:[
+{name:'每日补给',desc:'自动检查并领取在线奖励、免费礼包、税收奖励、王座之礼等基础福利。',scene:'适合日常领取基础福利。',check:['确认账号已进入游戏','确认各入口已开启'],tips:'日常类功能风险低，适合常开。',warn:''},
+{name:'跨战区演习',desc:'自动参与跨战区演习挑战，可使用城市技能、道具增益及英雄技能。',scene:'适合跨战区演习活动期间自动挑战。',check:['确认跨服活动已开启','设置可用编队','确认增益道具预算'],tips:'建议先观察一轮，确认目标选择符合预期。',warn:'会消耗体力和增益道具。'}
+],
+event:[
+{name:'卡特兹',desc:'处理卡特兹活动的定级、挑战、翻牌、宝箱奖励及联盟求助，支持定时清卡和战前增益。',scene:'适合卡特兹活动期间自动参与。',check:['确认活动已开启','设置挑战编队','确认增益道具预算'],tips:'建议先小次数试跑，确认定级和翻牌策略。',warn:''},
+{name:'军火大作战',desc:'处理军火大作战任务领奖、高级招募、翻牌及可选钻石重置，并临时调整打野次数配合活动。',scene:'适合军火大作战活动期间自动参与。',check:['确认活动已开启','确认招募券和钻石预算','设置翻牌策略'],tips:'钻石重置前请确认预算。',warn:'高级招募和钻石重置会消耗资源。'}
+],
+c8:[
+{name:'永恒科技',desc:'自动学习永恒科技，可按分支和优先级持续推进跨服阶段的科技进度。',scene:'适合跨服阶段推进永恒科技。',check:['确认永恒科技已开启','设置科技分支和优先级','确认资源足够'],tips:'建议按联盟科技路线设置优先级。',warn:'会消耗科技资源。'},
+{name:'永恒演习',desc:'自动参与永恒演习，支持挑战时间、冲榜策略、克制系数、城市技能等配置。',scene:'适合永恒演习活动期间自动挑战。',check:['确认永恒演习已开启','设置挑战编队和时间','确认增益道具预算'],tips:'冲榜期间建议提高挑战频率。',warn:'会消耗体力和增益道具。'}
+]
+};
+function renderM(cat){
+  const list=mfeats[cat]||[];
+  document.getElementById('mfContent').innerHTML=list.map(f=>`
+    <div style="border-bottom:1px solid var(--border);padding:16px 0">
+      <h4 style="margin:0 0 8px">${f.name}</h4>
+      <p style="margin-bottom:8px">${f.desc}</p>
+      <p><strong>适用场景：</strong>${f.scene}</p>
+      <p><strong>开启前检查：</strong></p>
+      <ul>${f.check.map(c=>`<li>${c}</li>`).join('')}</ul>
+      ${f.tips?`<p style="margin-top:8px"><strong>使用建议：</strong>${f.tips}</p>`:''}
+      ${f.warn?`<p style="margin-top:8px;color:var(--danger)"><strong>注意：</strong>${f.warn}</p>`:''}
+    </div>`).join('');
+}
+renderM('battle');
+document.querySelectorAll('#mfTabs .tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('#mfTabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    renderM(t.dataset.m);
+  });
+});
+</script>
+<script src="/auth.js"></script>
+</body>
+</html>

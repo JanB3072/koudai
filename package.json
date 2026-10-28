@@ -1,0 +1,24 @@
+{
+  "name": "koudai-new",
+  "version": "1.0.0",
+  "description": "口袋管家 - 游戏账号管理与云端托管平台",
+  "private": true,
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./bin/www",
+    "dev": "node ./bin/www"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.9",
+    "express": "^4.22.3",
+    "express-session": "^1.18.0",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1",
+    "mysql": "^2.18.1",
+    "swagger-jsdoc": "6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
