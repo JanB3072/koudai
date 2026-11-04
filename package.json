@@ -1,7 +1,7 @@
 {
   "name": "koudai-new",
   "version": "1.0.0",
-  "description": "口袋管家 - 游戏账号管理与云端托管平台（Cloudflare Workers + D1 版本）",
+  "description": "口袋助手 - 游戏账号管理与云端托管平台（Cloudflare Workers + D1 版本）",
   "private": true,
   "main": "worker/index.js",
   "scripts": {

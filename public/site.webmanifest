@@ -1,0 +1,10 @@
+{
+  "name": "口袋助手",
+  "short_name": "口袋助手",
+  "description": "口袋奇兵桌面端辅助工具：多账号管理、任务自动化、云同步与点数计费。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f7cff",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>充值记录 - 口袋管家后台</title>
+<title>充值管理 - 口袋助手后台</title>
 <link rel="stylesheet" href="/style.css">
 <style>
   html,body{height:100%}
@@ -40,25 +40,65 @@
   .list-panel .panel-head{flex-shrink:0}
   .list-panel .pager{flex-shrink:0}
   .empty{padding:40px;text-align:center;color:#9ca3af}
+  .banner{margin-bottom:16px;padding:12px 16px;border-radius:8px;font-size:14px}
+  .banner-ok{background:#d1fae5;color:#065f46}
+  .banner-err{background:#fee2e2;color:#991b1b}
+  /* 可搜索下拉 */
+  .ss{position:relative;min-width:200px}
+  .ss-input{width:100%;box-sizing:border-box}
+  .ss-list{position:fixed;z-index:1000;max-height:240px;overflow:auto;background:#fff;border:1px solid #d1d5db;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.12);display:none}
+  .ss-opt{padding:8px 12px;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ss-opt:hover,.ss-opt.active{background:#eef2ff;color:#4f7cff}
+  .ss-empty{padding:8px 12px;font-size:13px;color:#9ca3af}
 </style>
 </head>
 <body>
 <div class="admin-layout">
   <aside class="sidebar">
-    <div class="brand">口袋管家后台</div>
+    <div class="brand">口袋助手后台</div>
     <a href="/admin">仪表盘</a>
     <a href="/admin/users">用户管理</a>
     <a href="/admin/accounts">账号管理</a>
     <a href="/admin/logs">扣费流水</a>
-    <a href="/admin/recharge" class="active">充值记录</a>
+    <a href="/admin/recharge" class="active">充值管理</a>
     <a href="/admin/pricing">收费配置</a>
     <a href="/admin/checkin">签到配置</a>
+    <a href="/admin/client">客户端资源</a>
+    <a href="/admin/packages">安装包管理</a>
     <a href="/admin/settings">账号设置</a>
   </aside>
   <main class="main">
     <div class="topbar">
-      <h2>充值记录</h2>
+      <h2>充值管理</h2>
       <div class="user-info">欢迎，<%= admin %> | <a href="/admin/logout">退出</a></div>
+    </div>
+
+    <% if (msg) { %><div class="banner banner-ok"><%= msg %></div><% } %>
+    <% if (error) { %><div class="banner banner-err"><%= error %></div><% } %>
+
+    <div class="panel">
+      <div class="panel-head"><h3>充值（点数累加到用户现有余额）</h3></div>
+      <div class="panel-body">
+        <form method="POST" action="/admin/recharge/do" class="form-row">
+          <div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px">选择用户（可搜索）</div>
+            <div class="ss">
+              <input type="text" id="userSearch" class="ss-input" placeholder="搜索用户名或ID…" autocomplete="off">
+              <input type="hidden" name="user" id="userValue" value="<%= filter.userId %>">
+              <div class="ss-list" id="userList"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px">充值点数（正数）</div>
+            <input type="number" name="amount" placeholder="如 100" step="any" min="0.01" required>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px">备注</div>
+            <input type="text" name="note" placeholder="可选">
+          </div>
+          <button type="submit" class="btn btn-primary">确认充值</button>
+        </form>
+      </div>
     </div>
 
     <div class="panel">
@@ -115,5 +155,49 @@
     </div>
   </main>
 </div>
+<script>
+(function(){
+  var users = <%- JSON.stringify(users || []) %>;
+  var input = document.getElementById('userSearch');
+  var hidden = document.getElementById('userValue');
+  var list = document.getElementById('userList');
+  var wrap = document.querySelector('.ss');
+  var active = -1;
+  function esc(s){return String(s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  // fixed 定位：按输入框实时坐标放置，避免被父级 overflow:hidden 裁剪
+  function place(){
+    var r = input.getBoundingClientRect();
+    list.style.left = r.left + 'px';
+    list.style.top = (r.bottom + 4) + 'px';
+    list.style.width = r.width + 'px';
+  }
+  function render(q){
+    q = (q||'').trim().toLowerCase();
+    var m = users.filter(function(u){return !q || String(u.id).indexOf(q) >= 0 || (u.username||'').toLowerCase().indexOf(q) >= 0;}).slice(0, 50);
+    place();
+    if(!m.length){ list.innerHTML = '<div class="ss-empty">无匹配用户</div>'; list.style.display = 'block'; return; }
+    list.innerHTML = m.map(function(u, i){
+      return '<div class="ss-opt' + (i === active ? ' active' : '') + '" data-id="' + u.id + '" data-label="' + u.id + ' · ' + esc(u.username) + '">' + u.id + ' · ' + esc(u.username) + '</div>';
+    }).join('');
+    list.style.display = 'block';
+  }
+  function choose(el){ input.value = el.getAttribute('data-label'); hidden.value = el.getAttribute('data-id'); list.style.display = 'none'; active = -1; }
+  input.addEventListener('focus', function(){ active = -1; render(input.value); });
+  input.addEventListener('input', function(){ active = -1; render(input.value); });
+  input.addEventListener('keydown', function(e){
+    var opts = list.querySelectorAll('.ss-opt');
+    if(e.key === 'ArrowDown'){ active = Math.min(active + 1, opts.length - 1); render(input.value); e.preventDefault(); }
+    else if(e.key === 'ArrowUp'){ active = Math.max(active - 1, 0); render(input.value); e.preventDefault(); }
+    else if(e.key === 'Enter'){ if(active >= 0 && opts[active]) choose(opts[active]); e.preventDefault(); }
+    else if(e.key === 'Escape'){ list.style.display = 'none'; }
+  });
+  list.addEventListener('mousedown', function(e){ var el = e.target.closest('.ss-opt'); if(el) choose(el); });
+  document.addEventListener('click', function(e){ if(!wrap.contains(e.target)) list.style.display = 'none'; });
+  window.addEventListener('resize', function(){ list.style.display = 'none'; });
+  window.addEventListener('scroll', function(){ list.style.display = 'none'; }, true);
+  // 预填已选用户（筛选/充值后回显）
+  if(hidden.value){ var u = users.filter(function(x){return String(x.id) === String(hidden.value);})[0]; if(u) input.value = u.id + ' · ' + u.username; }
+})();
+</script>
 </body>
 </html>

@@ -19,6 +19,12 @@ export async function insert(sql, params = []) {
   const r = await run(sql, params);
   return r && r.meta ? r.meta.last_row_id : null;
 }
+// 批量执行（D1 中一次 batch 只计 1 次查询，避免逐条写入触发免费版 50 次/调用上限）
+// statements: [{ sql, params }]
+export async function batch(statements) {
+  if (!statements || !statements.length) return [];
+  return DB.batch(statements.map(s => DB.prepare(s.sql).bind(...(s.params || []))));
+}
 
 // ---------- 行映射 / 辅助 ----------
 function toAccount(a) {
@@ -338,6 +344,10 @@ async function getUsersPage(page, pageSize) {
   );
   return { users: rows.map(mapUserRow), page: p, totalPages, total: totalCount };
 }
+// 供后台下拉选择使用：返回全部用户（id + username），限量避免下拉过长
+async function listAllUsers(limit = 1000) {
+  return query('SELECT id, username FROM users ORDER BY id LIMIT ?', [limit]);
+}
 async function addUser({ username, gameRole, plan, points, status }) {
   await run(
     "INSERT INTO users (username, game_role, plan, points, status, created_at, billed_hours, last_daily_settled_date) " +
@@ -401,6 +411,18 @@ async function applyAdminPointsChange(userId, newPoints, admin, note) {
   }
   return { oldPoints, newPoints: np, delta };
 }
+// 充值：在现有点数基础上累加；amt 必须为正数
+async function rechargeUser(userId, amount, admin, note) {
+  const amt = Math.round(Number(amount) * 100) / 100;
+  if (!(amt > 0)) throw new Error('INVALID_AMOUNT');
+  const rows = await query('SELECT id, points FROM users WHERE id = ?', [userId]);
+  if (!rows.length) throw new Error('USER_NOT_FOUND');
+  const oldPoints = Number(rows[0].points) || 0;
+  const newPoints = Math.round((oldPoints + amt) * 100) / 100;
+  await run('UPDATE users SET points = ? WHERE id = ?', [newPoints, userId]);
+  await logRecharge(userId, amt, admin, note || '后台充值', newPoints);
+  return { oldPoints, newPoints, added: amt };
+}
 async function getAllRechargeLog(opts) {
   opts = opts || {};
   const page = Math.max(1, parseInt(opts.page, 10) || 1);
@@ -454,9 +476,9 @@ export {
   getSetting, setSetting, getPointsPlanEnabled, setPointsPlanEnabled, getBillingConfig, saveBillingConfig,
   getDailyMinimum, logDeduction, getDailyTotal, getPointsLog, getAllPointsLog, settleDailyMinimum, settleUserPoints,
   getAdminByUsername, updateAdminPassword,
-  getDashboardStats, getUsersPage, addUser, updateUser, deleteUser, applyAdminPointsChange,
+  getDashboardStats, getUsersPage, listAllUsers, addUser, updateUser, deleteUser, applyAdminPointsChange,
   getPricingCards, savePricingCards,
-  ensureApiToken, getUserByToken, regenerateApiToken, logRecharge, getAllRechargeLog,
+  ensureApiToken, getUserByToken, regenerateApiToken, logRecharge, getAllRechargeLog, rechargeUser,
   getCheckinConfig, saveCheckinConfig, getCheckinStatus, doCheckin,
   fmtDateTime, fmtDate, ensureSchema
 };

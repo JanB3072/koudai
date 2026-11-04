@@ -1,4 +1,4 @@
--- 口袋管家 D1(SQLite) 初始化迁移
+-- 口袋助手 D1(SQLite) 初始化迁移
 -- 由 Cloudflare 全免费方案替代原 MySQL 的 ensureSchema 自动建表逻辑
 -- 执行：wrangler d1 migrations apply koudai --local  (或 --remote)
 

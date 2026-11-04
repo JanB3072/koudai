@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>用户管理 - 口袋管家后台</title>
+<title>用户管理 - 口袋助手后台</title>
 <link rel="stylesheet" href="/style.css">
 <style>
   html,body{height:100%}
@@ -22,7 +22,7 @@
   .panel-head{padding:16px 20px;border-bottom:1px solid #e5e7eb}
   .panel-head h3{font-size:16px}
   .panel-body{padding:20px}
-  .form-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px}
+  .form-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
   .form-row.full{grid-template-columns:1fr}
   input,select{padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;width:100%}
   .btn{padding:8px 16px;border:none;border-radius:6px;font-size:13px;cursor:pointer;transition:.2s}
@@ -50,14 +50,16 @@
 <body>
 <div class="admin-layout">
   <aside class="sidebar">
-    <div class="brand">口袋管家后台</div>
+    <div class="brand">口袋助手后台</div>
     <a href="/admin">仪表盘</a>
     <a href="/admin/users" class="active">用户管理</a>
     <a href="/admin/accounts">账号管理</a>
     <a href="/admin/logs">扣费流水</a>
-    <a href="/admin/recharge">充值记录</a>
+    <a href="/admin/recharge">充值管理</a>
     <a href="/admin/pricing">收费配置</a>
     <a href="/admin/checkin">签到配置</a>
+    <a href="/admin/client">客户端资源</a>
+    <a href="/admin/packages">安装包管理</a>
     <a href="/admin/settings">账号设置</a>
   </aside>
   <main class="main">
@@ -77,7 +79,6 @@
               <option value="高级版">高级版</option>
               <option value="尊享版">尊享版</option>
             </select>
-            <input type="number" name="points" placeholder="点数" value="0" step="any" required>
             <select name="status">
               <option value="正常">正常</option>
               <option value="已过期">已过期</option>
@@ -100,12 +101,7 @@
             <td><%= u.username %></td>
             <td><%= u.gameRole %></td>
             <td><span class="tag <%= u.plan==='尊享版'?'tag-vip':'tag-premium' %>"><%= u.plan %></span></td>
-            <td>
-              <form class="inline-form" method="POST" action="/admin/users/update/<%= u.id %>">
-                <input type="number" name="points" value="<%= u.points %>" step="any" style="width:70px">
-                <button class="btn btn-sm btn-primary">保存</button>
-              </form>
-            </td>
+            <td><b><%= u.points %></b></td>
             <td><span class="tag <%= u.status==='正常'?'tag-ok':'tag-expired' %>"><%= u.status %></span></td>
             <td><%= u.createdAt %></td>
             <td>

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Sitemap: https://koudai.binjia70.workers.dev/sitemap.xml

@@ -3,6 +3,8 @@ import { Hono } from 'hono';
 import * as db from './db.js';
 import { sha256, hmacSha256Hex, randomTokenHex } from './util.js';
 import * as files from './files.js';
+import * as clientRes from './clientResources.js';
+import * as pkg from './packages.js';
 import { getSession, saveSession, destroySession } from './session.js';
 import { render } from './render.js';
 
@@ -69,6 +71,31 @@ async function authenticateUser(c, next) {
     return next();
   } catch (e) {
     return c.json({ success: false, message: '服务器错误' }, 500);
+  }
+}
+
+// 安装包下载鉴权：超管(会话) / 普通用户(会话) / 工具(Bearer token) 均可，未登录跳转登录页
+async function requireDownload(c, next) {
+  const s = c.get('session') || {};
+  if (s.admin || s.user) {
+    c.set('user', s.user || { id: 0, username: s.admin, role: s.role || 'admin' });
+    return next();
+  }
+  // 工具端用 Bearer token；浏览器（无 Authorization 头）走会话/跳转登录页
+  const auth = c.req.header('authorization') || '';
+  const isBearer = /^Bearer\s+/i.test(auth);
+  const token = isBearer ? auth.replace(/^Bearer\s+/i, '').trim() : (c.req.query('token') || '');
+  if (!token) {
+    return isBearer ? c.json({ success: false, message: '未授权，请先登录' }, 401) : c.redirect('/login');
+  }
+  try {
+    const u = await db.getUserByToken(token);
+    if (!u) return isBearer ? c.json({ success: false, message: 'token 无效或已过期' }, 401) : c.redirect('/login');
+    if (u.status === '已过期') return isBearer ? c.json({ success: false, message: '账号已过期，请联系管理员' }, 403) : c.redirect('/login');
+    c.set('user', { id: u.id, username: u.username, plan: u.plan, status: u.status });
+    return next();
+  } catch (e) {
+    return isBearer ? c.json({ success: false, message: '服务器错误' }, 500) : c.redirect('/login');
   }
 }
 
@@ -174,16 +201,49 @@ app.get('/admin/logs', requireAuth, async (c) => {
 });
 app.get('/admin/recharge', requireAuth, async (c) => {
   try {
-    const page = parseInt(c.req.query('page')) || 1;
-    const r = await db.getAllRechargeLog({ userId: c.req.query('userId'), day: c.req.query('day'), page, pageSize: 20 });
+    const q = c.req.query();
+    const page = parseInt(q.page) || 1;
+    const r = await db.getAllRechargeLog({ userId: q.userId, day: q.day, page, pageSize: 20 });
     const totalPages = Math.ceil(r.total / 20) || 1;
+    const users = await db.listAllUsers();
+    const msgMap = { done: '充值成功，点数已累加至用户账户' };
+    const errMap = {
+      userempty: '请选择用户',
+      amount: '充值点数必须为正数',
+      usernotfound: '未找到该用户',
+      INVALID_AMOUNT: '充值点数必须为正数',
+      USER_NOT_FOUND: '未找到该用户'
+    };
     return render(c, 'admin/recharge', {
       admin: c.get('session').admin,
-      filter: { userId: c.req.query('userId') || '', day: c.req.query('day') || '' },
-      records: r.records, total: r.total, page, totalPages
+      filter: { userId: q.userId || '', day: q.day || '' },
+      users,
+      records: r.records, total: r.total, page, totalPages,
+      msg: msgMap[q.done] !== undefined ? msgMap[q.done] : null,
+      error: errMap[q.doerror] !== undefined ? errMap[q.doerror] : (q.doerror || null)
     });
   } catch (e) {
-    return render(c, 'admin/recharge', { admin: c.get('session').admin, filter: { userId: '', day: '' }, records: [], total: 0, page: 1, totalPages: 1 });
+    return render(c, 'admin/recharge', { admin: c.get('session').admin, filter: { userId: '', day: '' }, users: [], records: [], total: 0, page: 1, totalPages: 1, msg: null, error: null });
+  }
+});
+// 充值操作：选择用户（ID 或用户名），点数累加到现有余额
+app.post('/admin/recharge/do', requireAuth, async (c) => {
+  try {
+    const b = await fb(c);
+    const raw = String(b.user || b.userId || '').trim();
+    const amount = Math.round(Number(b.amount) * 100) / 100;
+    if (!raw) return c.redirect('/admin/recharge?doerror=userempty');
+    if (!(amount > 0)) return c.redirect('/admin/recharge?doerror=amount');
+    const found = /^\d+$/.test(raw)
+      ? await db.query('SELECT id FROM users WHERE id = ?', [Number(raw)])
+      : await db.query('SELECT id FROM users WHERE username = ?', [raw]);
+    if (!found.length) return c.redirect('/admin/recharge?doerror=usernotfound');
+    await db.rechargeUser(found[0].id, amount, c.get('session').admin, b.note || '');
+    return c.redirect('/admin/recharge?done=1');
+  } catch (e) {
+    const m = String((e && e.message) || e);
+    const code = /INVALID_AMOUNT/.test(m) ? 'INVALID_AMOUNT' : /USER_NOT_FOUND/.test(m) ? 'USER_NOT_FOUND' : 'usernotfound';
+    return c.redirect('/admin/recharge?doerror=' + code);
   }
 });
 app.get('/admin/pricing', requireAuth, async (c) => {
@@ -585,6 +645,198 @@ app.delete('/api/files/:id', authenticateUser, async (c) => {
     if (!ok) return signedJson(c, { success: false, message: '文件不存在' }, 404);
     return signedJson(c, { success: true, message: '删除成功' });
   } catch (e) { return signedJson(c, { success: false, message: '服务器错误' }, 500); }
+});
+
+// ---------- 客户端版本管理（工具端拉取资源） ----------
+// 版本检查：GET /api/version（公开，工具端启动先读取版本号）
+app.get('/api/version', async (c) => {
+  try {
+    const version = await clientRes.getClientVersion();
+    const resources = await clientRes.listResources();
+    return c.json({
+      success: true,
+      version,
+      updatedAt: resources.length ? resources[0].updatedAt : null,
+      resources: resources.map((r) => ({
+        name: r.name,
+        url: '/api/client/resource/' + encodeURIComponent(r.name),
+        sha256: r.sha256,
+        size: r.size
+      }))
+    });
+  } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
+});
+
+// 资源下载：GET /api/client/resource/:name（二进制；响应头带 X-File-Sha256 供完整性校验）
+app.get('/api/client/resource/:name', async (c) => {
+  try {
+    const r = await clientRes.getResourceMeta(c.req.param('name'));
+    if (!r) return c.json({ success: false, message: '资源不存在' }, 404);
+    c.header('Content-Type', 'application/octet-stream');
+    c.header('Content-Disposition', "attachment; filename*=UTF-8''" + encodeURIComponent(r.name));
+    c.header('X-File-Name', encodeURIComponent(r.name));
+    c.header('X-File-Size', String(r.size));
+    c.header('X-File-Sha256', String(r.sha256));
+    return c.body(clientRes.streamResource(r.name), 200);
+  } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
+});
+
+// ---------- 后台：客户端资源管理（requireAuth） ----------
+app.get('/admin/client', requireAuth, async (c) => {
+  try {
+    const version = await clientRes.getClientVersion();
+    const resources = await clientRes.listResources();
+    const q = c.req.query();
+    const msg = q.uploaded ? ('已上传 ' + q.uploaded + ' 个文件')
+      : q.version ? ('版本已更新为 ' + q.version)
+      : q.deleted ? '已删除资源'
+      : null;
+    const errMap = {
+      missing: '请选择要上传的文件',
+      exeonly: '客户端资源仅支持 .exe 文件；脚本 / ZIP 包请到「安装包管理」上传',
+      empty: '文件内容为空',
+      toolarge: '文件超过 20MB 上限，请压缩后再上传',
+      dberror: '写入数据库失败，请重试；若持续失败请联系管理员',
+      unknown: '上传失败，请重试'
+    };
+    return render(c, 'admin/client', {
+      admin: c.get('session').admin,
+      version, resources,
+      msg,
+      error: errMap[q.error] !== undefined ? errMap[q.error] : (q.error || null)
+    });
+  } catch (e) {
+    return render(c, 'admin/client', { admin: c.get('session').admin, version: '0', resources: [], msg: null, error: '服务器错误' });
+  }
+});
+
+app.post('/admin/client/resource', requireAuth, async (c) => {
+  try {
+    const form = await c.req.parseBody({ all: true });
+    const uploaded = Array.isArray(form.file) ? form.file : (form.file ? [form.file] : []);
+    if (!uploaded.length) return c.redirect('/admin/client?error=missing');
+    // 客户端资源只接收 Windows 安装程序（.exe）
+    for (const f of uploaded) {
+      if (!/\.exe$/i.test(String(f.name || ''))) return c.redirect('/admin/client?error=exeonly');
+    }
+    for (const f of uploaded) {
+      const bytes = new Uint8Array(await f.arrayBuffer());
+      await clientRes.saveResource(f.name, bytes);
+    }
+    return c.redirect('/admin/client?uploaded=' + uploaded.length);
+  } catch (e) {
+    const m = String((e && e.message) || e);
+    const code = /EMPTY_FILE/.test(m) ? 'empty'
+      : /FILE_TOO_LARGE/.test(m) ? 'toolarge'
+      : /D1_ERROR|SQLITE/i.test(m) ? 'dberror'
+      : 'unknown';
+    return c.redirect('/admin/client?error=' + encodeURIComponent(code));
+  }
+});
+
+app.post('/admin/client/version', requireAuth, async (c) => {
+  try {
+    const b = await fb(c);
+    const v = await clientRes.setClientVersion(b.version);
+    return c.redirect('/admin/client?version=' + encodeURIComponent(v));
+  } catch (e) {
+    return c.redirect('/admin/client?error=' + encodeURIComponent(String((e && e.message) || e)));
+  }
+});
+
+app.post('/admin/client/resource/delete', requireAuth, async (c) => {
+  try {
+    const b = await fb(c);
+    if (b.name) await clientRes.deleteResource(b.name);
+    return c.redirect('/admin/client?deleted=1');
+  } catch (e) { return c.redirect('/admin/client'); }
+});
+
+// ---------- 后台：版本安装包管理（仅超管 requireAuth） ----------
+const PKG_MAX = 20 * 1024 * 1024; // 单包上限 20MB（D1 分块存储）
+// 安装包管理 = 脚本 / ZIP 类资源包；exe 客户端程序归「客户端资源」
+const PKG_EXT = ['zip', 'war', 'jar', 'tar', 'gz', 'tgz', '7z', 'rar', 'z', 'xz', 'bz2', 'sh', 'py', 'bat', 'cmd', 'ps1', 'js', 'json', 'txt', 'xml', 'html', 'css'];
+function pkgExt(name) { const m = String(name || '').toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ''; }
+
+app.get('/admin/packages', requireAuth, async (c) => {
+  try {
+    const packages = await pkg.listPackages();
+    const q = c.req.query();
+    return render(c, 'admin/packages', {
+      admin: c.get('session').admin,
+      packages,
+      msg: q.uploaded ? '上传成功' : q.deleted ? '已删除' : null,
+      error: q.error || null
+    });
+  } catch (e) {
+    return render(c, 'admin/packages', { admin: c.get('session').admin, packages: [], msg: null, error: '服务器错误' });
+  }
+});
+
+app.post('/admin/packages/upload', requireAuth, async (c) => {
+  try {
+    const form = await c.req.parseBody();
+    const f = form.file;
+    if (!f || typeof f === 'string' || typeof f.arrayBuffer !== 'function') return c.redirect('/admin/packages?error=nofile');
+    const name = f.name || 'package.bin';
+    if (!PKG_EXT.includes(pkgExt(name))) return c.redirect('/admin/packages?error=ext');
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    if (!bytes.byteLength) return c.redirect('/admin/packages?error=empty');
+    if (bytes.byteLength > PKG_MAX) return c.redirect('/admin/packages?error=size');
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const sha = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    const key = pkg.newKey();
+    await pkg.savePackageBytes(key, bytes);
+    const b = await fb(c);
+    await pkg.savePackage({ pkgKey: key, name, version: b.version || '', size: bytes.byteLength, sha256: sha, uploadedBy: c.get('session').admin });
+    return c.redirect('/admin/packages?uploaded=1');
+  } catch (e) {
+    return c.redirect('/admin/packages?error=' + encodeURIComponent(String((e && e.message) || e)));
+  }
+});
+
+app.post('/admin/packages/delete', requireAuth, async (c) => {
+  try {
+    const b = await fb(c);
+    const meta = await pkg.getPackageByKey(b.key);
+    if (meta) {
+      await pkg.deletePackageByKey(meta.pkg_key);
+    }
+    return c.redirect('/admin/packages?deleted=1');
+  } catch (e) { return c.redirect('/admin/packages'); }
+});
+
+// 工具/登录用户：列出可用安装包
+app.get('/api/packages', requireDownload, async (c) => {
+  try {
+    const packages = await pkg.listPackages();
+    return c.json({
+      success: true,
+      packages: packages.map((p) => ({
+        key: p.pkg_key,
+        name: p.name,
+        version: p.version,
+        size: p.size,
+        sha256: p.sha256,
+        createdAt: p.created_at,
+        url: '/pkg/' + encodeURIComponent(p.pkg_key)
+      }))
+    });
+  } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
+});
+
+// 下载安装包（需登录）：/pkg/:id，id 即 pkg_key（后台上传的版本安装压缩包/脚本）
+app.get('/pkg/:id', requireDownload, async (c) => {
+  try {
+    const id = c.req.param('id');
+    const meta = await pkg.getPackageByKey(id);
+    if (!meta) return c.json({ success: false, message: '安装包不存在' }, 404);
+    c.header('Content-Type', 'application/octet-stream');
+    c.header('Content-Disposition', "attachment; filename*=UTF-8''" + encodeURIComponent(meta.name));
+    c.header('X-File-Size', String(meta.size));
+    c.header('X-File-Sha256', String(meta.sha256));
+    return c.body(pkg.streamPackageBytes(meta.pkg_key), 200);
+  } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
 });
 
 // 未匹配路由回退到首页（与原 404 渲染 index 行为一致）

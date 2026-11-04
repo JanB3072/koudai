@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: 口袋管家 开放 API
+  title: 口袋助手 开放 API
   description: |
     供工具端（客户端）与前台页面调用。
 

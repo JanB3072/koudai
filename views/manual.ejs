@@ -3,14 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>使用说明 - 口袋管家</title>
-<meta name="description" content="口袋管家使用说明，包含云端托管开启步骤、界面操作指南及各功能详细配置说明。">
-<link rel="stylesheet" href="/style.css">
+<title>使用说明 - 口袋助手</title>
+<meta name="description" content="口袋助手使用说明：安装启动、登录与计费、游戏账号与云同步、功能开关与任务执行、数据备份、安全与合规。">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#4f7cff">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://koudai.binjia70.workers.dev/manual">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="口袋助手">
+<meta property="og:title" content="使用说明 - 口袋助手">
+<meta property="og:description" content="口袋助手使用说明：安装启动、登录与计费、游戏账号与云同步、功能开关与任务执行、数据备份、安全与合规。">
+<meta property="og:url" content="https://koudai.binjia70.workers.dev/manual">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用说明 - 口袋助手">
+<meta name="twitter:description" content="口袋助手使用说明：安装、登录计费、云同步、功能执行与数据安全。">
 </head>
 <body>
 <header class="site-header">
-  <div class="header-inner">
-    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+  <div class="hd-in">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋助手</a>
     <nav class="nav">
       <a href="/">首页</a>
       <a href="/features">功能介绍</a>
@@ -19,171 +32,156 @@
       <a href="/pricing">价格</a>
       <a href="/faq">常见问题</a>
     </nav>
-    <div class="header-actions"><a href="/login" style="margin-right:14px;color:#4f7cff;font-size:14px;text-decoration:none">登录</a><span class="status-pill"><span class="dot"></span>服务运行中</span></div>
+    <div class="hd-actions">
+      <a class="login-link" href="/login">登录</a>
+      <span class="status-pill"><span class="dot"></span>服务运行中</span>
+    </div>
   </div>
 </header>
 
-<div class="container"><div class="breadcrumb"><a href="/">首页</a><span>/</span>使用说明</div></div>
+<div class="container"><div class="crumb"><a href="/">首页</a><span>/</span>使用说明</div></div>
 
-<section style="padding-top:0">
+<section class="sec" style="padding-top:28px">
   <div class="container">
-    <div class="section-head">
-      <div class="eyebrow">User Manual</div>
-      <h2>不会设置，先来这里</h2>
-      <p>每项功能均说明适用场景、开启前检查、会做什么、不会做什么，以及需注意的消耗与风险。</p>
+    <div class="sec-head">
+      <span class="eyebrow">使用说明</span>
+      <h2>从安装到日常托管</h2>
+      <p>本说明描述当前实现：桌面端如何安装、计费怎么算、账号怎么同步、任务怎么跑、数据在哪、要注意什么。</p>
     </div>
-    <div class="grid grid-3" style="text-align:center;margin-bottom:32px">
-      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--primary)">94</div><p>功能项</p></div>
-      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--accent)">7</div><p>大分类</p></div>
-      <div class="card"><div style="font-size:36px;font-weight:800;color:var(--warning)">48</div><p>风险提示</p></div>
+
+    <div class="doc-layout">
+      <nav class="doc-nav">
+        <a href="#start">一、安装与启动</a>
+        <a href="#login">二、登录、授权与计费</a>
+        <a href="#sync">三、游戏账号与云同步</a>
+        <a href="#tasks">四、功能开关与任务执行</a>
+        <a href="#data">五、数据、日志与备份</a>
+        <a href="#safety">六、安全与合规</a>
+      </nav>
+
+      <div>
+        <div id="start" class="doc-block">
+          <h3>一、安装与启动</h3>
+          <h4>系统要求</h4>
+          <ul>
+            <li>Windows 64 位系统，建议 Windows 10/11。</li>
+            <li>桌面端基于 WebView2 运行，安装包会自动检测；缺少时先安装 Microsoft Edge WebView2 Runtime（Evergreen 版）。</li>
+            <li>游戏账号依赖本机浏览器/游戏页面运行，电脑需要能正常打开游戏。</li>
+          </ul>
+          <h4>启动后看不到账号或数据？</h4>
+          <p>先确认登录的是同一个用户；账号列表来自本机数据 + 云端同步。如果换过安装目录或数据目录，客户端可能读不到旧数据，可检查启动日志里的「[资源]」行，登录后点一次「同步账号」。不要随意删除 <code>data/</code> 目录。</p>
+          <h4>多开与窗口</h4>
+          <ul>
+            <li>一个客户端可以管理多个游戏账号，每个账号有独立的浏览器配置目录；不要同时启动两个客户端副本指向同一份数据目录。</li>
+            <li>点窗口关闭按钮会询问「最小化到托盘 / 退出程序」：最小化到托盘时已启动的账号和任务继续运行，选择退出才会停止。</li>
+            <li>游戏页面被隐藏或最小化时，浏览器定时器会被节流，任务变慢甚至暂停；请让游戏窗口保持可见，电源设置不要自动休眠。</li>
+          </ul>
+        </div>
+
+        <div id="login" class="doc-block">
+          <h3>二、登录、授权与计费</h3>
+          <h4>登录与会员</h4>
+          <p>注册即会员，没有授权码/试用码概念；套餐名称和权益由服务端定义。启动游戏账号前会检查登录状态、账号状态、离线宽限和点数余额，未登录会被登录门禁拦住。</p>
+          <h4>点数计费</h4>
+          <ul>
+            <li>按「1 点/小时/账号」计费，每个账号独立计算；最小计量单位 0.01 点 = 36 秒。</li>
+            <li>客户端每 60 个单位（36 分钟）批量上报一次；账号停止、掉线或程序退出时立即上报剩余部分，上报成功立即在本地显示扣减。</li>
+            <li>本地估算余额 ≤ 0 且还有在线账号时，会停止所有在线账号并拒绝启动新账号（硬停）；充值/加点后重新启动即可。</li>
+            <li>服务端余额是权威值，客户端显示会先扣除「已上报但尚未确认」的点数并定期校准；短暂不一致属正常情况。</li>
+          </ul>
+          <h4>离线宽限</h4>
+          <p>客户端记录最后一次成功联网时间：断网后 72 小时内仍可启动账号，超过 72 小时或从未登录成功会拒绝启动并要求重新登录。已运行的账号不会因断网立刻停止。</p>
+          <div class="note note-ok">会员账号支持每日签到领点数：奖励按周期逐日递增（第 1 天 5 点、每天 +5、一个月一循环），可在门户 <a href="/checkin">签到页</a> 或工具端签到。</div>
+          <h4>账号状态</h4>
+          <p>账号被停用后不会立刻停止：停用状态主要在「启动账号」时检查，已运行的账号需要手动停止或等点数耗尽触发硬停；停用后不能再启动新账号。</p>
+        </div>
+
+        <div id="sync" class="doc-block">
+          <h3>三、游戏账号与云同步</h3>
+          <h4>添加游戏账号</h4>
+          <p>必须在桌面端打开游戏并完成登录态采集，客户端会保存免登录凭证。门户不能通过输入游戏账号密码直接绑定。本地按游戏 uid 判重，同一游戏号重复添加会被明确拒绝。</p>
+          <h4>换电脑恢复</h4>
+          <ul>
+            <li>在新电脑登录同一用户，点「同步账号」，云端会按游戏 uid 拉回账号和免登录凭证。</li>
+            <li>任务开关、设置、场景、日志保存在本机浏览器 localStorage / data/ 目录，不会上云，换电脑不会自动恢复，需要重新配置。</li>
+            <li>QQ 渠道账号的 qqAccessToken 可随云同步往返；qqOpenid 服务端不回吐，跨机器可能需要重新采集。</li>
+          </ul>
+          <h4>删除与复活</h4>
+          <p>本地删除会同时尝试删除云端并记「待删除」标记；但如果另一台电脑仍持有该账号，它下一轮同步可能把云端行重新推回来。请在仍持有该账号的所有机器上删除。</p>
+        </div>
+
+        <div id="tasks" class="doc-block">
+          <h3>四、功能开关与任务执行</h3>
+          <h4>开启与保存</h4>
+          <p>在助手面板/桌面端功能卡上打开开关，进入设置修改参数，最后必须点「保存」；只改控件不保存、或直接关闭设置窗口，修改会丢失。任务由页面内调度器自动执行，也可以点卡片上的 ▶ 手动执行一次。</p>
+          <h4>调度规则</h4>
+          <ul>
+            <li>任务引擎同一时间只跑一个流程，按优先级和「最久没跑」排序；高优先级任务、联动需求先跑。</li>
+            <li>自动执行要同时满足：功能开关已开、设置已保存、未到每日上限、不在冷却、体力/队列等条件满足、没有其他流程在跑。</li>
+            <li>手动 ▶ 会跳过「每日上限」和冷却检查，但流程内部仍会检查体力、队列、编队等硬条件；执行成功仍会累加每日计数并真实消耗游戏资源。</li>
+            <li>失败按冷却重试，连续失败 3 次后进入指数退避（最长约 30 分钟）；页面被隐藏、弹窗遮挡等环境原因记为「跳过」，不计失败。</li>
+          </ul>
+          <h4>场景</h4>
+          <p>场景是一套「任务开关 + 设置」的快照，可一键切换（例如「手动模式」「全自动」「活动期」）。每个账号最多 20 个，保存在本机 localStorage，不上云。</p>
+          <h4>资源冲突</h4>
+          <p>不同功能共享体力、行军队列、活动次数、道具等游戏资源。典型冲突：采集占满队列导致打野/集结没队列；自动补体力花掉体力瓶；发射井窗口会暂停采集。请用「保留空闲队列」「保留体力」「每日次数」等设置做取舍，不要全开。</p>
+          <h4>日志</h4>
+          <p>助手面板底部有实时日志；每个账号的完整日志在 <code>data/logs/&lt;游戏uid&gt;/</code> 下按日期保存，桌面端宿主日志在 <code>data/logs/desktop/</code>。任务日志显示成功只代表「客户端发起了操作」，最终结果以游戏服务器为准。</p>
+        </div>
+
+        <div id="data" class="doc-block">
+          <h3>五、数据、日志与备份</h3>
+          <ul>
+            <li>任务配置和场景存在本机浏览器 localStorage（按游戏 uid 分开），清浏览器数据、删浏览器配置目录、换电脑都会丢失，且不会从云端恢复。</li>
+            <li>云端会同步游戏账号和免登录凭证；任务配置、场景、日志、浏览器缓存不会同步。</li>
+            <li>备份整个 <code>data/</code> 目录（账号、chrome-profiles、日志、desktop 配置）即可保留本机全部状态；恢复时放回同一路径，不要在客户端运行时直接复制正在使用的浏览器配置目录。</li>
+            <li>安装包默认保留 data/，卸载时会询问是否保留；升级前仍建议先备份。</li>
+            <li>游戏更新可能改变界面节点、按钮位置或协议，相关功能会暂时失效，等待客户端更新即可。</li>
+          </ul>
+        </div>
+
+        <div id="safety" class="doc-block">
+          <h3>六、安全与合规</h3>
+          <div class="note note-risk"><strong>封号风险：</strong>产品通过注入脚本操作游戏页面，可能违反游戏用户协议。高频操作、异常在线时长、大范围扫描都会增加风控概率。请使用保守的间隔/次数，不要多开大量账号集中操作，不要宣传「零封号」；因使用产生的封号/处罚由使用者自行承担。</div>
+          <ul>
+            <li>战区大范围扫描有风险：建议只用小号、低频率、必要范围扫描，未经确认不要跑全服/大窗口扫描。</li>
+            <li>客户端不保存游戏密码，但保存的 serverInfoToken / qqAccessToken 可免登录进入游戏，敏感度等同密码；当前在本机和云端都是明文存储/传输。</li>
+            <li>请只在可信电脑和网络使用，不要分享 data/ 目录或日志；门户不应展示或导出这些凭证字段，如果你在门户看到完整凭证，请立即反馈。</li>
+          </ul>
+        </div>
+
+        <div class="doc-block">
+          <h3>遇到其他问题？</h3>
+          <p>查看 <a href="/faq" style="color:var(--brand-deep);font-weight:600">常见问题（58 问）</a>，或按以下方式反馈：① 发生时间；② 游戏角色名/uid（不要发密码或完整凭证）；③ 功能名称/标识；④ 卡片状态文案；⑤ 对应时间段日志；⑥ 游戏内截图。先重启账号复现一次，确认不是一次性网络/活动状态问题。</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="container manual-layout">
-  <nav class="manual-nav">
-    <a href="#cloud-hang">云端托管说明</a>
-    <a href="#panel">界面操作指南</a>
-    <a href="#features">功能详细说明</a>
-  </nav>
-  <div>
-    <div id="cloud-hang" class="content-block">
-      <span class="badge badge-normal">Cloud Play</span>
-      <h3>云端托管使用说明</h3>
-      <p>云端托管适合不方便一直开启电脑、浏览器或手机的用户。为当前游戏角色开启并保存后，本地离线约 2 至 3 分钟，口袋管家将接管该角色，继续运行已开启并保存的功能。</p>
-      <p><strong>提示：</strong>云端托管并非"一键完成所有任务"，不会替你自动开启全部功能，也不会替你决定钻石、体力、道具等资源如何消耗。</p>
-      <h4>开启前检查</h4>
-      <ul>
-        <li><strong>角色已关联</strong> — 需托管的游戏角色必须已添加到当前口袋管家账号。</li>
-        <li><strong>已开通尊享版</strong> — 云端托管属尊享版能力，按 1.5 点/小时计费，需保持自动续费。</li>
-        <li><strong>功能已配置</strong> — 先在本地开启所需功能，完成设置并保存。</li>
-        <li><strong>余额与资源充足</strong> — 确认点数余额足够，提示资源不足时联系管理员。</li>
-      </ul>
-      <h4>首次开启步骤</h4>
-      <ol style="padding-left:20px">
-        <li>进入需托管的角色，打开助手面板（电脑右键，手机长按半秒）。</li>
-        <li>点击底部"云端托管"，若非尊享版请先切换（需开启自动续费）。</li>
-        <li>按需开启"自动关闭战斗模式"和"自动打开城防"。</li>
-        <li>打开"开启云端托管"并保存，底部显示"云端托管 · 已开启"即为生效。</li>
-        <li>关闭本地游戏，离线约 2 至 3 分钟后查看状态确认接管。</li>
-      </ol>
-      <h4>状态说明</h4>
-      <div class="state-item"><span class="state-dot" style="background:#9ca3af"></span><div><strong>未开启</strong><br><span style="font-size:13px;color:var(--text-light)">当前角色未使用云端托管。</span></div></div>
-      <div class="state-item"><span class="state-dot" style="background:var(--warning)"></span><div><strong>已开启，等待离线</strong><br><span style="font-size:13px;color:var(--text-light)">配置已保存，本地仍在线或刚退出，关闭本地后等待约 2 至 3 分钟。</span></div></div>
-      <div class="state-item"><span class="state-dot" style="background:var(--primary)"></span><div><strong>云端准备启动</strong><br><span style="font-size:13px;color:var(--text-light)">正在为角色准备运行，请勿反复开关。</span></div></div>
-      <div class="state-item"><span class="state-dot" style="background:var(--success)"></span><div><strong>云端托管中</strong><br><span style="font-size:13px;color:var(--text-light)">云端已接管，可在操作日志查看带云端标识的记录。</span></div></div>
-      <div class="state-item"><span class="state-dot" style="background:var(--accent)"></span><div><strong>云端正在让位</strong><br><span style="font-size:13px;color:var(--text-light)">检测到你回来登录，正在退出角色，等待后再进入。</span></div></div>
-      <h4>停止云端托管</h4>
-      <p>进入云端托管设置，关闭"开启云端托管"并保存。尊享版使用满 24 小时后可切回高级版，切换后云端托管将停止。</p>
-    </div>
-
-    <div id="panel" class="content-block">
-      <span class="badge badge-normal">Panel Guide</span>
-      <h3>界面操作指南</h3>
-      <h4>顶部工具栏</h4>
-      <ul>
-        <li><strong>搜索</strong> — 输入功能名或关键词，快速定位主面板功能。</li>
-        <li><strong>战斗模式</strong> — 进入战斗场景时使用，开启后部分高级功能暂停响应。</li>
-        <li><strong>保护/快攻</strong> — 快速开启免受攻击保护或快攻三连。</li>
-        <li><strong>自动刷新</strong> — 可设置每日固定时间刷新页面，适合长时间挂机。</li>
-      </ul>
-      <h4>底部操作区</h4>
-      <ul>
-        <li><strong>账号信息</strong> — 查看当前登录状态、版本类型及剩余天数。</li>
-        <li><strong>云端托管</strong> — 查看当前角色是否已开启、等待接管或正在运行。</li>
-        <li><strong>操作日志</strong> — 查看功能执行记录，带云端标识的来自云端托管。</li>
-        <li><strong>断线重连</strong> — 控制掉线后是否自动重启，长时间挂机时开启。</li>
-      </ul>
-      <h4>功能分类区</h4>
-      <p>按战斗出征、资源采集、联盟互动、日常福利、限时活动、跨服玩法、统计工具分组。</p>
-      <ul>
-        <li><strong>勾选开关</strong> — 开启或停止单个功能。</li>
-        <li><strong>点击功能名</strong> — 绿色功能名可点击，进入设置面板。</li>
-        <li><strong>分类全选</strong> — 批量启停一组功能，首次不建议一次全开。</li>
-      </ul>
-    </div>
-
-    <div id="features" class="content-block">
-      <span class="badge badge-normal">功能说明</span>
-      <h3>功能详细说明</h3>
-      <p style="margin-bottom:16px">以下列出主要功能的详细说明，点击分类标签筛选。</p>
-      <div class="tabs" id="mfTabs">
-        <button class="tab active" data-m="battle">战斗出征</button>
-        <button class="tab" data-m="gather">资源采集</button>
-        <button class="tab" data-m="alliance">联盟互动</button>
-        <button class="tab" data-m="daily">日常福利</button>
-        <button class="tab" data-m="event">限时活动</button>
-        <button class="tab" data-m="c8">跨服玩法</button>
-      </div>
-      <div id="mfContent"></div>
-    </div>
-  </div>
-</div>
-
 <footer class="site-footer">
   <div class="container">
-    <div class="footer-grid">
-      <div class="footer-col"><h4>口袋管家</h4><p style="font-size:13px;line-height:1.8">专业的口袋奇兵智能辅助工具。</p></div>
-      <div class="footer-col"><h4>产品</h4><a href="/features">功能介绍</a><a href="/download">下载</a><a href="/pricing">价格</a></div>
-      <div class="footer-col"><h4>帮助</h4><a href="/manual">使用说明</a><a href="/faq">常见问题</a></div>
-      <div class="footer-col"><h4>其他</h4><a href="/manual#cloud-hang">云端托管说明</a><a href="/pricing#cloud-hang-pricing">尊享版计费</a></div>
+    <div class="ft-grid">
+      <div>
+        <h4>口袋助手</h4>
+        <p>本说明只描述当前实现，产品更新后以客户端内说明和最新文档为准。</p>
+      </div>
+      <div>
+        <h4>产品</h4>
+        <a href="/features">功能介绍</a>
+        <a href="/download">下载</a>
+        <a href="/pricing">价格</a>
+      </div>
+      <div>
+        <h4>帮助</h4>
+        <a href="/manual">使用说明</a>
+        <a href="/faq">常见问题</a>
+        <a href="/checkin">每日签到</a>
+      </div>
     </div>
-    <div class="footer-bottom">&copy; 2026 口袋管家</div>
+    <div class="ft-bottom">&copy; 2026 口袋助手</div>
   </div>
 </footer>
-
-<script>
-const mfeats={
-battle:[
-{name:'扫荡黑暗敌军',desc:'自动搜寻并攻击黑暗敌军或活动怪，支持怪物组、等级范围、普通区/中立区、多队列、五连及体力策略。',scene:'适合日常打野、活动任务、体力消耗及多账号挂机。',check:['确认目标地图正确','设置可用编队','确认体力预算','活动怪先小次数试跑'],tips:'首次配置建议先设 3-5 次观察日志，确认目标、等级、体力及队列符合预期后再提高次数。',warn:'自动补体力、五连攻击及多队列会显著加快体力消耗。'},
-{name:'自动发起集结',desc:'自动发起集结类攻击，适用于联盟活动、战锤或活动怪等需持续开车的场景。',scene:'适合负责开集结、需重复发起同类目标时使用。',check:['确认联盟成员在线及集结时间合适','设置可用编队并确认兵力足够','确认目标类型、等级及活动地图正确'],tips:'联盟活动前先与成员确认集结目标，避免自动发起后无人响应。',warn:'会占用行军队列及联盟成员时间，错误目标可能浪费活动次数。'},
-{name:'自动加入集结',desc:'自动加入联盟成员发起的集结，可按目标类型选择战锤、难民营、军团据点等。',scene:'适合联盟成员频繁开集结、需自动上车时使用。',check:['确认已加入联盟并能看到集结列表','确认有空闲队列及可用兵力','按联盟目标选择要加入的集结类型'],tips:'联盟开车多时很实用，但采集号建议至少保留一个空队列。',warn:''},
-{name:'免受攻击守护',desc:'自动处理免战保护相关操作，适合被攻击、抵近或迁城风险较高时快速响应。',scene:'适合跨服战、基地战或高风险挂机时使用。',check:['确认背包有可用保护道具','确认当前场景允许使用保护','设置触发类型前先理解风险来源'],tips:'高风险挂机前先手动确认保护道具数量；参战账号勿盲目开启全部触发。',warn:'会消耗免战或保护类道具，错误配置可能影响主动战斗安排。'}
-],
-gather:[
-{name:'自动采集资源',desc:'自动派队采集普通田、机械田、遗迹田等资源点，可保留机动队列并临时切换采集技能。',scene:'适合日常资源采集及多账号挂机。',check:['确认采集目标类型和地图','设置可用采集编队','确认保留机动队列数量'],tips:'建议从 1-2 队开始，观察一轮日志后再调整。',warn:''},
-{name:'智能造兵',desc:'自动训练指定兵种，支持陆海空选择及智能造兵，适合日常补兵与活动训练任务。',scene:'适合日常补兵和活动训练任务。',check:['确认兵营等级满足训练条件','确认资源和加速道具足够','设置目标兵种和数量'],tips:'建议先小批量试跑，确认资源消耗符合预期。',warn:'会消耗资源和加速道具。'},
-{name:'军官院校',desc:'自动学习军官院校天赋，支持见习军官、进阶天赋、通用技巧、兵种克制等。',scene:'适合提升军官属性和兵种克制。',check:['确认天赋点和资源足够','确认学习优先级','钻石加速前确认预算'],tips:'建议先设置好优先级，避免消耗在不需要的天赋上。',warn:'钻石加速会消耗钻石。'}
-],
-alliance:[
-{name:'联盟捐献',desc:'自动处理联盟科技、联盟技能、世界遗址、联盟建筑等捐献入口，稳定获取联盟贡献。',scene:'适合日常获取联盟贡献。',check:['确认捐献资源足够','确认捐献优先级','联盟活动期间注意预留资源'],tips:'建议先设置捐献上限，避免资源被一次性捐空。',warn:'会消耗联盟捐献相关资源。'},
-{name:'捐献挑战联盟机甲',desc:'自动处理联盟机甲碎片捐献与挑战，可设置捐献数量、攻击编队、强化、皮肤等。',scene:'适合联盟机甲活动期间自动参与。',check:['确认联盟机甲活动已开启','设置可用战斗编队','确认碎片和体力预算'],tips:'联盟有集火时间安排时，按联盟时间开启。',warn:'会消耗体力和碎片。'}
-],
-daily:[
-{name:'每日补给',desc:'自动检查并领取在线奖励、免费礼包、税收奖励、王座之礼等基础福利。',scene:'适合日常领取基础福利。',check:['确认账号已进入游戏','确认各入口已开启'],tips:'日常类功能风险低，适合常开。',warn:''},
-{name:'跨战区演习',desc:'自动参与跨战区演习挑战，可使用城市技能、道具增益及英雄技能。',scene:'适合跨战区演习活动期间自动挑战。',check:['确认跨服活动已开启','设置可用编队','确认增益道具预算'],tips:'建议先观察一轮，确认目标选择符合预期。',warn:'会消耗体力和增益道具。'}
-],
-event:[
-{name:'卡特兹',desc:'处理卡特兹活动的定级、挑战、翻牌、宝箱奖励及联盟求助，支持定时清卡和战前增益。',scene:'适合卡特兹活动期间自动参与。',check:['确认活动已开启','设置挑战编队','确认增益道具预算'],tips:'建议先小次数试跑，确认定级和翻牌策略。',warn:''},
-{name:'军火大作战',desc:'处理军火大作战任务领奖、高级招募、翻牌及可选钻石重置，并临时调整打野次数配合活动。',scene:'适合军火大作战活动期间自动参与。',check:['确认活动已开启','确认招募券和钻石预算','设置翻牌策略'],tips:'钻石重置前请确认预算。',warn:'高级招募和钻石重置会消耗资源。'}
-],
-c8:[
-{name:'永恒科技',desc:'自动学习永恒科技，可按分支和优先级持续推进跨服阶段的科技进度。',scene:'适合跨服阶段推进永恒科技。',check:['确认永恒科技已开启','设置科技分支和优先级','确认资源足够'],tips:'建议按联盟科技路线设置优先级。',warn:'会消耗科技资源。'},
-{name:'永恒演习',desc:'自动参与永恒演习，支持挑战时间、冲榜策略、克制系数、城市技能等配置。',scene:'适合永恒演习活动期间自动挑战。',check:['确认永恒演习已开启','设置挑战编队和时间','确认增益道具预算'],tips:'冲榜期间建议提高挑战频率。',warn:'会消耗体力和增益道具。'}
-]
-};
-function renderM(cat){
-  const list=mfeats[cat]||[];
-  document.getElementById('mfContent').innerHTML=list.map(f=>`
-    <div style="border-bottom:1px solid var(--border);padding:16px 0">
-      <h4 style="margin:0 0 8px">${f.name}</h4>
-      <p style="margin-bottom:8px">${f.desc}</p>
-      <p><strong>适用场景：</strong>${f.scene}</p>
-      <p><strong>开启前检查：</strong></p>
-      <ul>${f.check.map(c=>`<li>${c}</li>`).join('')}</ul>
-      ${f.tips?`<p style="margin-top:8px"><strong>使用建议：</strong>${f.tips}</p>`:''}
-      ${f.warn?`<p style="margin-top:8px;color:var(--danger)"><strong>注意：</strong>${f.warn}</p>`:''}
-    </div>`).join('');
-}
-renderM('battle');
-document.querySelectorAll('#mfTabs .tab').forEach(t=>{
-  t.addEventListener('click',()=>{
-    document.querySelectorAll('#mfTabs .tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    renderM(t.dataset.m);
-  });
-});
-</script>
 <script src="/auth.js"></script>
 </body>
 </html>

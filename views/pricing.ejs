@@ -3,14 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>价格与计费 - 口袋管家</title>
-<meta name="description" content="口袋管家价格与计费说明：工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天）；每日最低消费 <%= billing.dailyMinimum %> 点/天；月卡、季卡、半年卡、年卡点数套餐。">
+<title>价格与计费 - 口袋助手</title>
+<meta name="description" content="口袋助手价格与计费说明：工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天）；每日最低消费 <%= billing.dailyMinimum %> 点/天；月卡、季卡、半年卡、年卡点数套餐。">
 <link rel="stylesheet" href="/style.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#4f7cff">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://koudai.binjia70.workers.dev/pricing">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="口袋助手">
+<meta property="og:title" content="价格与计费 - 口袋助手">
+<meta property="og:description" content="口袋助手价格与计费说明：工具运行 1 点/小时（满 24 小时 = 24 点/天）；每日最低消费 12 点/天；月卡、季卡、半年卡、年卡点数套餐。">
+<meta property="og:url" content="https://koudai.binjia70.workers.dev/pricing">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="价格与计费 - 口袋助手">
+<meta name="twitter:description" content="口袋助手按点数计费：1 点/小时，月卡/季卡/半年卡/年卡点数套餐。">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"口袋助手","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows 10/11 (64-bit)","url":"https://koudai.binjia70.workers.dev/pricing","description":"口袋助手按点数计费：工具运行 1 点/小时，月卡/季卡/半年卡/年卡点数套餐。","offers":{"@type":"Offer","price":"0","priceCurrency":"CNY","description":"按点数计费，注册即会员"}}
+</script>
 </head>
 <body>
 <header class="site-header">
-  <div class="header-inner">
-    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+  <div class="hd-in">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋助手</a>
     <nav class="nav">
       <a href="/">首页</a>
       <a href="/features">功能介绍</a>
@@ -19,7 +36,10 @@
       <a href="/pricing" class="active">价格</a>
       <a href="/faq">常见问题</a>
     </nav>
-    <div class="header-actions"><a href="/login" style="margin-right:14px;color:#4f7cff;font-size:14px;text-decoration:none">登录</a><span class="status-pill"><span class="dot"></span>服务运行中</span></div>
+    <div class="hd-actions">
+      <a class="login-link" href="/login">登录</a>
+      <span class="status-pill"><span class="dot"></span>服务运行中</span>
+    </div>
   </div>
 </header>
 
@@ -151,7 +171,7 @@
     <div class="section-head"><div class="eyebrow">BONUS</div><h2>体验与推荐奖励</h2></div>
     <div class="card">
       <h3>首次关联体验</h3>
-      <p style="font-size:14px;color:var(--text-light)">每个游戏账号首次关联口袋管家时，可获得 1 天高级版体验。同一游戏账号只能领取一次，解绑后重新关联不会重复赠送。</p>
+      <p style="font-size:14px;color:var(--text-light)">每个游戏账号首次关联口袋助手时，可获得 1 天高级版体验。同一游戏账号只能领取一次，解绑后重新关联不会重复赠送。</p>
       <table>
         <thead><tr><th>被邀请人购买</th><th>推荐人获得</th><th>被邀请人活动奖励</th></tr></thead>
         <tbody>
@@ -168,13 +188,25 @@
 
 <footer class="site-footer">
   <div class="container">
-    <div class="footer-grid">
-      <div class="footer-col"><h4>口袋管家</h4><p style="font-size:13px;line-height:1.8">专业的口袋奇兵智能辅助工具。</p></div>
-      <div class="footer-col"><h4>产品</h4><a href="/features">功能介绍</a><a href="/download">下载</a><a href="/pricing">价格</a></div>
-      <div class="footer-col"><h4>帮助</h4><a href="/manual">使用说明</a><a href="/faq">常见问题</a></div>
-      <div class="footer-col"><h4>其他</h4><a href="/manual#cloud-hang">云端托管说明</a><a href="/pricing#cloud-hang-pricing">尊享版计费</a></div>
+    <div class="ft-grid">
+      <div>
+        <h4>口袋助手</h4>
+        <p>口袋奇兵桌面端辅助工具：多账号管理、任务自动化、云同步与点数计费。</p>
+      </div>
+      <div>
+        <h4>产品</h4>
+        <a href="/features">功能介绍</a>
+        <a href="/download">下载</a>
+        <a href="/pricing">价格</a>
+      </div>
+      <div>
+        <h4>帮助</h4>
+        <a href="/manual">使用说明</a>
+        <a href="/faq">常见问题</a>
+        <a href="/checkin">每日签到</a>
+      </div>
     </div>
-    <div class="footer-bottom">&copy; 2026 口袋管家</div>
+    <div class="ft-bottom">&copy; 2026 口袋助手</div>
   </div>
 </footer>
 <script src="/auth.js"></script>
