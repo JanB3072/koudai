@@ -102,6 +102,90 @@ async function getDailyMinimum() {
   return Number.isFinite(n) && n > 0 ? n : 12;
 }
 
+// ---------- 每日签到 ----------
+// 默认奖励：第 1 天 5 点，依次 +5，共 30 天（一个月一个循环），可在后台配置
+function defaultCheckinRewards() {
+  const a = [];
+  for (let i = 1; i <= 30; i++) a.push(i * 5);
+  return a;
+}
+function cleanRewards(arr) {
+  const rewards = (Array.isArray(arr) ? arr : [])
+    .map(n => Math.max(0, Math.round(Number(n) || 0)))
+    .filter((n, i) => i < 366);
+  return rewards.some(n => n > 0) ? rewards : defaultCheckinRewards();
+}
+async function getCheckinConfig() {
+  const enabled = (await getSetting('checkin_enabled', 'true')) !== 'false';
+  let rewards = defaultCheckinRewards();
+  try {
+    const arr = JSON.parse(await getSetting('checkin_rewards', ''));
+    rewards = cleanRewards(arr);
+  } catch (e) { /* 用默认 */ }
+  return { enabled, rewards };
+}
+async function saveCheckinConfig({ enabled, rewards }) {
+  if (enabled != null) await setSetting('checkin_enabled', enabled ? 'true' : 'false');
+  if (Array.isArray(rewards) && rewards.length) {
+    await setSetting('checkin_rewards', JSON.stringify(cleanRewards(rewards)));
+  }
+  return getCheckinConfig();
+}
+// 签到状态：cycle_day 按「已签到总次数」在一个周期内顺延，断签不打断顺序
+async function getCheckinStatus(userId) {
+  const cfg = await getCheckinConfig();
+  const day = (await queryOne("SELECT date('now') AS d")).d;
+  const last = await queryOne('SELECT day, cycle_day, reward FROM checkin_log WHERE user_id = ? ORDER BY day DESC, id DESC LIMIT 1', [userId]);
+  const todayChecked = !!last && String(last.day) === day;
+  const totalRow = await queryOne('SELECT COUNT(*) AS c FROM checkin_log WHERE user_id = ?', [userId]);
+  const totalDays = Number(totalRow.c);
+  const len = cfg.rewards.length;
+  const currentIdx = todayChecked ? (totalDays - 1) % len : totalDays % len;
+  return {
+    enabled: cfg.enabled,
+    rewards: cfg.rewards,
+    cycleLength: len,
+    today: day,
+    todayChecked,
+    totalDays,
+    cycleDay: todayChecked ? (Number(last.cycle_day) || currentIdx + 1) : currentIdx + 1,
+    todayReward: cfg.rewards[currentIdx] || 0,
+    lastReward: todayChecked ? (Number(last.reward) || 0) : null,
+    nextReward: cfg.rewards[todayChecked ? (totalDays % len) : (totalDays % len)] || 0,
+    lastCheckinDay: last ? String(last.day) : ''
+  };
+}
+async function doCheckin(userId) {
+  const cfg = await getCheckinConfig();
+  if (!cfg.enabled) return { ok: false, code: 'DISABLED', message: '签到功能未开启' };
+  const day = (await queryOne("SELECT date('now') AS d")).d;
+  const totalRow = await queryOne('SELECT COUNT(*) AS c FROM checkin_log WHERE user_id = ?', [userId]);
+  const totalDays = Number(totalRow.c);
+  const len = cfg.rewards.length;
+  const cycleDay = (totalDays % len) + 1;
+  const reward = cfg.rewards[totalDays % len] || 0;
+  try {
+    await run('INSERT INTO checkin_log (user_id, day, cycle_day, reward) VALUES (?, ?, ?, ?)', [userId, day, cycleDay, reward]);
+  } catch (e) {
+    return { ok: false, code: 'ALREADY', message: '今日已签到，明天再来吧' };
+  }
+  let remaining = 0;
+  if (reward > 0) {
+    await run('UPDATE users SET points = points + ? WHERE id = ?', [reward, userId]);
+    const u = await queryOne('SELECT points FROM users WHERE id = ?', [userId]);
+    remaining = Math.round(Number(u.points) * 100) / 100;
+    // amount 记 0，不参与每日最低消费统计；奖励只记在 added_points
+    await run(
+      "INSERT INTO points_log (user_id, account_id, amount, type, added_points, deducted_points, remaining_points, day) VALUES (?, '', 0, 'checkin', ?, 0, ?, ?)",
+      [userId, reward, remaining, day]
+    );
+  }
+  return {
+    ok: true, reward, cycleDay, day, totalDays: totalDays + 1,
+    remainingPoints: remaining, nextReward: cfg.rewards[(totalDays + 1) % len] || 0
+  };
+}
+
 // 积分结算（只读查询，实际扣费由工具上报 / 每日最低结算完成）
 async function settleUserPoints(userId) {
   const u = await queryOne('SELECT id, points, tool_started_at FROM users WHERE id = ?', [userId]);
@@ -373,5 +457,6 @@ export {
   getDashboardStats, getUsersPage, addUser, updateUser, deleteUser, applyAdminPointsChange,
   getPricingCards, savePricingCards,
   ensureApiToken, getUserByToken, regenerateApiToken, logRecharge, getAllRechargeLog,
+  getCheckinConfig, saveCheckinConfig, getCheckinStatus, doCheckin,
   fmtDateTime, fmtDate, ensureSchema
 };

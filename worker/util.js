@@ -50,6 +50,16 @@ export async function sha256(s) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// HMAC-SHA256 十六进制签名（用于接口响应防篡改）
+export async function hmacSha256Hex(keyStr, msg) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(String(keyStr)), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(String(msg)));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // 生成 n 字节十六进制随机串（用于 API 令牌，48 位）
 export function randomTokenHex(bytes = 24) {
   const arr = crypto.getRandomValues(new Uint8Array(bytes));

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>签到配置 - 口袋管家后台</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  html,body{height:100%}
+  body{margin:0;background:#f3f4f6;overflow:hidden}
+  .admin-layout{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:220px;background:#1a1f36;color:#fff;padding:20px 0;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;box-sizing:border-box}
+  .sidebar .brand{padding:0 20px 20px;font-size:18px;font-weight:700;border-bottom:1px solid #2a2f4a}
+  .sidebar a{display:block;padding:12px 20px;color:#9ca3af;font-size:14px;text-decoration:none;transition:.2s}
+  .sidebar a:hover,.sidebar a.active{background:#2a2f4a;color:#fff}
+  .main{flex:1;height:100vh;padding:24px;display:flex;flex-direction:column;overflow-y:auto;box-sizing:border-box}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+  .topbar h2{font-size:22px}
+  .topbar .user-info{font-size:14px;color:#6b7280}
+  .topbar .user-info a{color:#ef4444;margin-left:12px}
+  .panel{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:24px}
+  .panel-head{padding:16px 20px;border-bottom:1px solid #e5e7eb}
+  .panel-head h3{font-size:16px}
+  .panel-body{padding:20px}
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;font-size:13px;color:#374151;margin-bottom:6px}
+  .form-group textarea{width:100%;min-height:320px;padding:10px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-family:Consolas,monospace;box-sizing:border-box;line-height:1.9}
+  .switch{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:#374151;cursor:pointer}
+  .switch input{width:18px;height:18px}
+  .btn{padding:10px 24px;border:none;border-radius:6px;font-size:14px;cursor:pointer;transition:.2s}
+  .btn-primary{background:#4f7cff;color:#fff}.btn-primary:hover{background:#3a5fd4}
+  .btn-ghost{background:#f3f4f6;color:#374151;margin-left:8px}.btn-ghost:hover{background:#e5e7eb}
+  .alert{background:#d1fae5;color:#065f46;padding:10px 16px;border-radius:8px;font-size:13px;margin-bottom:16px}
+  .tip{font-size:13px;color:#6b7280;background:#f9fafb;padding:10px 12px;border-radius:6px;border:1px solid #e5e7eb;margin:0 0 16px;line-height:1.7}
+  .sum{font-size:13px;color:#4f7cff;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="brand">口袋管家后台</div>
+    <a href="/admin">仪表盘</a>
+    <a href="/admin/users">用户管理</a>
+    <a href="/admin/accounts">账号管理</a>
+    <a href="/admin/logs">扣费流水</a>
+    <a href="/admin/recharge">充值记录</a>
+    <a href="/admin/pricing">收费配置</a>
+    <a href="/admin/checkin" class="active">签到配置</a>
+    <a href="/admin/settings">账号设置</a>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <h2>每日签到配置</h2>
+      <div class="user-info">欢迎，<%= admin %> | <a href="/admin/logout">退出</a></div>
+    </div>
+
+    <% if(saved) { %><div class="alert">签到配置已保存成功！</div><% } %>
+
+    <form method="POST" action="/admin/checkin/save">
+      <div class="panel">
+        <div class="panel-head"><h3>功能开关</h3></div>
+        <div class="panel-body">
+          <label class="switch">
+            <input type="checkbox" name="enabled" <%- cfg.enabled ? 'checked' : '' %>>
+            启用每日签到（关闭后前台页面与工具端签到接口均返回未开启）
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>奖励序列（一个周期，逐日顺延，可整体配置）</h3></div>
+        <div class="panel-body">
+          <p class="tip">
+            每行一个数字，代表该周期第 N 天签到奖励的点数；周期结束后重新从第 1 天开始。
+            默认第 1 天 5 点、依次递增 5 点，共 30 天（一个月）。断签不打断顺序，按累计签到天数顺延。
+            用户可从前台 <code>/checkin</code> 页面或工具端 <code>POST /api/checkin</code> 签到。
+          </p>
+          <div class="form-group">
+            <label>奖励序列（每行 = 周期第 N 天奖励点数）</label>
+            <textarea name="rewards" id="rewardsBox"><%- (cfg.rewards || []).join('\n') %></textarea>
+            <div class="sum" id="sumLine"></div>
+          </div>
+          <div>
+            <button type="button" class="btn btn-ghost" onclick="fillDefault()">恢复默认（30 天递增 5）</button>
+            <button type="button" class="btn btn-ghost" onclick="fillFixed(5)">改为每天固定 5 点</button>
+            <button type="button" class="btn btn-ghost" onclick="fillFixed(10)">改为每天固定 10 点</button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">保存配置</button>
+    </form>
+  </main>
+</div>
+<script>
+function lines() { return document.getElementById('rewardsBox').value.split(/\n/).length; }
+function refreshSum() {
+  var n = lines();
+  document.getElementById('sumLine').textContent = '当前共 ' + n + ' 天（周期长度）';
+}
+function fillDefault() {
+  var a = [];
+  for (var i = 1; i <= 30; i++) a.push(i * 5);
+  document.getElementById('rewardsBox').value = a.join('\n');
+  refreshSum();
+}
+function fillFixed(v) {
+  var a = [];
+  for (var i = 0; i < 30; i++) a.push(v);
+  document.getElementById('rewardsBox').value = a.join('\n');
+  refreshSum();
+}
+document.getElementById('rewardsBox').addEventListener('input', refreshSum);
+refreshSum();
+</script>
+</body>
+</html>

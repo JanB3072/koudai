@@ -179,9 +179,20 @@
     });
   }
 
+  // 头部导航追加「签到」入口（所有引入 auth.js 的前台页面自动生效）
+  function bindCheckinLink() {
+    const nav = document.querySelector('.site-header .nav');
+    if (nav && !nav.querySelector('a[href="/checkin"]')) {
+      const a = document.createElement('a');
+      a.href = '/checkin';
+      a.textContent = '签到';
+      nav.appendChild(a);
+    }
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { refreshHeader(); bindLoginLinks(); });
+    document.addEventListener('DOMContentLoaded', () => { refreshHeader(); bindLoginLinks(); bindCheckinLink(); });
   } else {
-    refreshHeader(); bindLoginLinks();
+    refreshHeader(); bindLoginLinks(); bindCheckinLink();
   }
 })();

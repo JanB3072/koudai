@@ -1,0 +1,526 @@
+openapi: 3.0.3
+info:
+  title: 口袋管家 开放 API
+  description: |
+    供工具端（客户端）与前台页面调用。
+
+    ## 鉴权
+    除注册/登录外，所有接口需携带会员 API 令牌（登录后获取，48 位十六进制）：
+
+    `Authorization: Bearer <token>`
+
+    无法设置请求头的场景（如工具直接下载）可用查询参数：`?token=<token>`。
+
+    ## 响应签名（防篡改/防伪造）
+    除 401 外，所有需鉴权的 JSON 响应都带响应头：
+
+    - `X-Timestamp`：服务器毫秒时间戳
+    - `X-Nonce`：8 字节随机十六进制
+    - `X-Sign`：`HMAC_SHA256(key = token, message = X-Timestamp + "." + X-Nonce + "." + 响应体原文)`
+    - `X-Sign-Alg`：固定 `HMAC-SHA256`
+
+    工具端用本地保存的 token 重算即可校验；建议时间偏差超过 5 分钟拒绝该响应。
+    二进制下载接口改用 `X-File-Sha256` 响应头做完整性校验。
+  version: 1.0.0
+servers:
+  - url: /
+tags:
+  - name: 认证
+  - name: 签到
+  - name: 文件传输
+  - name: 游戏账号
+  - name: 点数计费
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 会员 API 令牌，登录接口获取；也可用查询参数 ?token=
+  schemas:
+    Ok:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        code: { type: string, description: 业务错误码，如 DISABLED / ALREADY / ACCOUNT_MISMATCH }
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        plan: { type: string, example: 高级版 }
+        points: { type: number, example: 123.45 }
+        status: { type: string, example: 正常 }
+    Account:
+      type: object
+      properties:
+        id: { type: string, example: acc-1 }
+        profileDir: { type: string }
+        uid: { type: string }
+        name: { type: string, description: 角色名 }
+        serverId: { type: string }
+        lastLoginAt: { type: integer, format: int64, description: 毫秒时间戳 }
+        serverInfoToken: { type: string }
+        tokenExpireAt: { type: integer, format: int64 }
+        avatar: { type: string }
+        qqAccessToken: { type: string }
+        qqOpenid: { type: string }
+    FileMeta:
+      type: object
+      properties:
+        id: { type: string, example: f-a1b2c3d4e5f6a7b8 }
+        name: { type: string }
+        size: { type: integer, description: 字节数，单文件上限 20MB }
+        sha256: { type: string, description: 64 位内容摘要 }
+        mime: { type: string }
+        chunks: { type: integer }
+    CheckinStatus:
+      type: object
+      properties:
+        success: { type: boolean }
+        enabled: { type: boolean, description: 功能开关（后台可关闭） }
+        rewards: { type: array, items: { type: number }, description: 完整奖励序列（点数） }
+        cycleLength: { type: integer, example: 30, description: 周期长度（天） }
+        today: { type: string, example: '2026-11-04' }
+        todayChecked: { type: boolean }
+        totalDays: { type: integer, description: 累计签到天数 }
+        cycleDay: { type: integer, description: 当前周期第几天 }
+        todayReward: { type: number, description: 本次签到可得点数 }
+        lastReward: { type: number, nullable: true, description: 今日已签时的实得点数 }
+        nextReward: { type: number }
+        lastCheckinDay: { type: string, nullable: true }
+    PointsRecord:
+      type: object
+      properties:
+        amount: { type: number }
+        added_points: { type: number }
+        deducted_points: { type: number }
+        remaining_points: { type: number }
+        type: { type: string, enum: [usage, daily_min, checkin] }
+        day: { type: string, example: '2026-11-04' }
+  responses:
+    Unauthorized:
+      description: 未提供或令牌无效
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { success: false, message: '令牌无效或已失效' }
+
+paths:
+  /api/register:
+    post:
+      tags: [认证]
+      summary: 注册
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, description: 至少 8 位 }
+                inviteCode: { type: string, description: 选填 }
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Ok'
+                  - type: object
+                    properties:
+                      points: { type: number, example: 600 }
+                      inviteCode: { type: string, nullable: true }
+
+  /api/login:
+    post:
+      tags: [认证]
+      summary: 登录（返回 API 令牌）
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: 登录成功，返回 token 与用户信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  token: { type: string, description: 48 位十六进制 API 令牌 }
+                  user: { $ref: '#/components/schemas/User' }
+      description: 业务失败（用户名或密码错误）时同样返回 HTTP 200，但 success=false，需按 success 字段判断。
+
+  /api/me:
+    get:
+      tags: [认证]
+      summary: 获取当前用户
+      responses:
+        '200':
+          description: 当前用户信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  loggedIn: { type: boolean }
+                  user: { $ref: '#/components/schemas/User' }
+
+  /api/logout:
+    post:
+      tags: [认证]
+      summary: 退出登录（自动重置 API 令牌）
+      responses:
+        '200': { description: 已退出 }
+
+  /api/token:
+    get:
+      tags: [认证]
+      summary: 获取 / 重置 API 令牌
+      parameters:
+        - name: regen
+          in: query
+          schema: { type: string, enum: ['0', '1'] }
+          description: 传 1 强制重置令牌（旧令牌立即失效）
+      responses:
+        '200':
+          description: 令牌
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  token: { type: string }
+
+  /api/checkin:
+    get:
+      tags: [签到]
+      summary: 查询签到状态
+      responses:
+        '200':
+          description: 签到状态
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckinStatus' }
+    post:
+      tags: [签到]
+      summary: 执行每日签到
+      description: |
+        奖励按周期逐日递增（默认第 1 天 5 点、每天 +5、共 30 天），由后台「签到配置」可整体修改。
+        断签不打断顺序：按累计签到天数在周期内顺延，周期结束后重新从第 1 天开始。每日仅可签一次。
+      responses:
+        '200':
+          description: 签到成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string, example: 签到成功，获得 65 点数 }
+                  reward: { type: number }
+                  cycleDay: { type: integer }
+                  day: { type: string, example: '2026-11-04' }
+                  totalDays: { type: integer }
+                  remainingPoints: { type: number }
+                  nextReward: { type: number }
+        '400':
+          description: 今日已签到（code=ALREADY）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { success: false, code: ALREADY, message: 今日已签到，明天再来吧 }
+        '403':
+          description: 功能未开启（code=DISABLED）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/files:
+    get:
+      tags: [文件传输]
+      summary: 文件列表
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 50, maximum: 100 } }
+      responses:
+        '200':
+          description: 分页文件列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  total: { type: integer }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+                  files:
+                    type: array
+                    items: { $ref: '#/components/schemas/FileMeta' }
+    post:
+      tags: [文件传输]
+      summary: 上传文件
+      description: 单文件上限 20MB。优先 multipart/form-data（file 字段），或 JSON dataBase64。
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+          application/json:
+            schema:
+              type: object
+              required: [dataBase64]
+              properties:
+                name: { type: string, description: 文件名 }
+                mime: { type: string }
+                dataBase64: { type: string, description: 文件内容 Base64 }
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  file: { $ref: '#/components/schemas/FileMeta' }
+        '413':
+          description: 文件过大（上限 20MB）
+
+  /api/files/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+        description: 上传时返回的文件 ID
+    get:
+      tags: [文件传输]
+      summary: 下载文件（二进制）
+      description: |
+        返回文件二进制体。响应头含 `X-File-Id` / `X-File-Name`（URL 编码）、`X-File-Size`、
+        `X-File-Sha256`（下载后必须校验完整性）。
+      responses:
+        '200':
+          description: 文件二进制
+          headers:
+            X-File-Id: { schema: { type: string } }
+            X-File-Name: { schema: { type: string }, description: URL 编码文件名 }
+            X-File-Size: { schema: { type: integer } }
+            X-File-Sha256: { schema: { type: string }, description: 内容 SHA-256 }
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '404': { description: 文件不存在或非本人文件 }
+    delete:
+      tags: [文件传输]
+      summary: 删除文件
+      responses:
+        '200': { description: 删除成功 }
+        '404': { description: 文件不存在 }
+
+  /api/accounts:
+    get:
+      tags: [游戏账号]
+      summary: 账号列表
+      parameters:
+        - name: userId
+          in: query
+          schema: { type: integer }
+          description: 传 userId 返回该用户账号、积分、默认账号与工具运行状态
+      responses:
+        '200': { description: 账号列表 }
+    post:
+      tags: [游戏账号]
+      summary: 创建账号
+      description: 同一 (uid, serverId) 重复绑定不发放首绑奖励（firstBind=false）。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, name]
+              properties:
+                userId: { type: integer }
+                name: { type: string, description: 角色名 }
+                uid: { type: string }
+                serverId: { type: string }
+                profileDir: { type: string }
+                lastLoginAt: { type: integer, format: int64 }
+                serverInfoToken: { type: string }
+                tokenExpireAt: { type: integer, format: int64 }
+                avatar: { type: string }
+                qqAccessToken: { type: string }
+                qqOpenid: { type: string }
+                status: { type: string, default: 正常 }
+      responses:
+        '200': { description: 创建成功，返回 id / firstBind / tracked 等 }
+
+  /api/accounts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+        description: 数字主键或 acc_id
+    put:
+      tags: [游戏账号]
+      summary: 更新账号（忽略未提供字段）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                uid: { type: string }
+                serverId: { type: string }
+                profileDir: { type: string }
+                lastLoginAt: { type: integer, format: int64 }
+                serverInfoToken: { type: string }
+                tokenExpireAt: { type: integer, format: int64 }
+                avatar: { type: string }
+                qqAccessToken: { type: string }
+                qqOpenid: { type: string }
+                status: { type: string }
+      responses:
+        '200':
+          description: 更新成功；账号不存在时同样返回 HTTP 200，但 success=false
+    delete:
+      tags: [游戏账号]
+      summary: 删除账号
+      description: 若删除的是默认账号，自动切换为剩余第一个。
+      responses:
+        '200': { description: 删除成功 }
+
+  /api/points/deduct:
+    post:
+      tags: [点数计费]
+      summary: 使用扣费
+      description: minutes 与 points 二选一；minutes 按每小时费率折算。余额不足时扣到 0 并返回 insufficient=true。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accountId]
+              properties:
+                accountId: { type: string }
+                minutes: { type: number, description: 使用时长（分钟），按每小时费率折算 }
+                points: { type: number, description: 直接指定扣除点数（正数） }
+      responses:
+        '200':
+          description: 扣费结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  userId: { type: integer }
+                  accountId: { type: string }
+                  deducted: { type: number }
+                  remainingPoints: { type: number }
+                  insufficient: { type: boolean }
+
+  /api/points/start:
+    post:
+      tags: [点数计费]
+      summary: 工具启动（开始按小时计费）
+      responses:
+        '200': { description: 已启动，返回 ratePerHour 与每日最低消费说明 }
+  /api/points/stop:
+    post:
+      tags: [点数计费]
+      summary: 工具停止（先按实际时长结算）
+      responses:
+        '200': { description: 已停止 }
+
+  /api/points/records:
+    get:
+      tags: [点数计费]
+      summary: 点数流水
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string, enum: [usage, daily_min, checkin] }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 20, maximum: 200 } }
+      responses:
+        '200':
+          description: 分页流水
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  total: { type: integer }
+                  records:
+                    type: array
+                    items: { $ref: '#/components/schemas/PointsRecord' }
+
+  /api/points/plan:
+    get:
+      tags: [点数计费]
+      summary: 查询点数套餐开关
+      responses:
+        '200': { description: '{ success, enabled }' }
+    post:
+      tags: [点数计费]
+      summary: 设置点数套餐开关
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled: { type: boolean }
+      responses:
+        '200': { description: '{ success, enabled }' }
+
+  /api/points/settle:
+    post:
+      tags: [点数计费]
+      summary: 每日最低消费结算
+      description: day/userId 均可省略，默认昨天、全部用户；定时任务每天北京时间 00:00 自动结算前一日。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                day: { type: string, example: '2026-11-03' }
+                userId: { type: integer }
+      responses:
+        '200': { description: 结算结果 }

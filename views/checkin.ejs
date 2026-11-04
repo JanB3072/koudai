@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日签到 - 口袋管家</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  body{background:#f3f4f6}
+  .ck-wrap{max-width:860px;margin:40px auto;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .ck-head{padding:28px 28px 20px;background:linear-gradient(135deg,#4f7cff,#6a5cff);color:#fff}
+  .ck-head h1{margin:0 0 8px;font-size:22px}
+  .ck-head p{margin:0;font-size:13px;opacity:.9}
+  .ck-body{padding:24px 28px 32px}
+  .ck-state{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:20px;background:#f9fafb}
+  .ck-state .info{font-size:14px;color:#374151;line-height:1.7}
+  .ck-state .info b{color:#4f7cff}
+  .ck-btn{padding:12px 28px;border:none;border-radius:8px;background:#4f7cff;color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;white-space:nowrap}
+  .ck-btn:hover{background:#3a5fd4}
+  .ck-btn:disabled{background:#d1d5db;color:#6b7280;cursor:not-allowed}
+  .ck-msg{font-size:13px;margin:0 0 18px;min-height:18px}
+  .ck-msg.ok{color:#10b981}.ck-msg.err{color:#ef4444}
+  .ck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+  .ck-day{position:relative;border:1px solid #e5e7eb;border-radius:10px;padding:12px 6px;text-align:center;font-size:12px;color:#6b7280;background:#fff}
+  .ck-day .d{font-size:12px;margin-bottom:4px}
+  .ck-day .p{font-size:16px;font-weight:700;color:#374151}
+  .ck-day.done{background:#ecfdf5;border-color:#a7f3d0}
+  .ck-day.done .p{color:#10b981}
+  .ck-day.current{border-color:#4f7cff;box-shadow:0 0 0 2px rgba(79,124,255,.25)}
+  .ck-day .tick{position:absolute;top:6px;right:8px;color:#10b981;font-weight:700}
+  .ck-tip{font-size:12px;color:#9ca3af;margin-top:16px;line-height:1.8}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋管家</a>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/features">功能介绍</a>
+      <a href="/download">下载</a>
+      <a href="/manual">使用说明</a>
+      <a href="/pricing">价格</a>
+      <a href="/faq">常见问题</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="ck-wrap">
+    <div class="ck-head">
+      <h1>每日签到</h1>
+      <p>每天签到领点数：奖励按周期逐日递增，一个周期结束后重新从第一天开始。</p>
+    </div>
+    <div class="ck-body">
+      <div class="ck-state">
+        <div class="info" id="ckInfo">加载中…</div>
+        <button id="ckBtn" class="ck-btn" onclick="doCheckin()" disabled>签到</button>
+      </div>
+      <div id="ckMsg" class="ck-msg"></div>
+      <div id="ckGrid" class="ck-grid"></div>
+      <div class="ck-tip" id="ckTip"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var TOKEN_KEY = 'koudai_token';
+  function getToken() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
+  function headers() {
+    var h = { 'Content-Type': 'application/json' };
+    var t = getToken();
+    if (t) h['Authorization'] = 'Bearer ' + t;
+    return h;
+  }
+  var status = null;
+
+  function render() {
+    if (!status) return;
+    var grid = document.getElementById('ckGrid');
+    grid.innerHTML = '';
+    var rewards = status.rewards || [];
+    for (var i = 0; i < rewards.length; i++) {
+      var dayNo = i + 1;
+      var el = document.createElement('div');
+      el.className = 'ck-day';
+      if (dayNo < status.cycleDay) el.className += ' done';
+      if (dayNo === status.cycleDay && !status.todayChecked) el.className += ' current';
+      el.innerHTML = '<div class="d">第 ' + dayNo + ' 天</div>' +
+        '<div class="p">' + rewards[i] + ' 点</div>' +
+        (dayNo < status.cycleDay ? '<span class="tick">✓</span>' : '');
+      grid.appendChild(el);
+    }
+    var info = document.getElementById('ckInfo');
+    var btn = document.getElementById('ckBtn');
+    var tip = document.getElementById('ckTip');
+    if (!status.enabled) {
+      info.innerHTML = '签到功能暂未开启，如有疑问请联系管理员。';
+      btn.disabled = true; btn.textContent = '未开启';
+      tip.textContent = '';
+      return;
+    }
+    info.innerHTML = '累计签到 <b>' + (status.totalDays || 0) + '</b> 天 · 当前周期第 <b>' + (status.cycleDay || 1) + '</b> 天' +
+      (status.todayChecked
+        ? ' · 今日已领 <b>' + (status.lastReward || 0) + '</b> 点，明天可领 <b>' + (status.nextReward || 0) + '</b> 点'
+        : ' · 今日可领 <b>' + (status.todayReward || 0) + '</b> 点');
+    btn.disabled = !!status.todayChecked;
+    btn.textContent = status.todayChecked ? '今日已签到' : '立即签到';
+    tip.textContent = '断签不打断奖励顺序：按累计签到天数在一个周期内顺延；周期结束后重新从第 1 天开始。签到获得的点数直接计入账户余额。';
+  }
+
+  async function load() {
+    var msg = document.getElementById('ckMsg');
+    if (!getToken()) {
+      document.getElementById('ckInfo').innerHTML = '请先 <a href="/login">登录</a> 后再签到。';
+      return;
+    }
+    try {
+      var r = await fetch('/api/checkin', { headers: headers() });
+      status = await r.json();
+      if (!status.success) { msg.className = 'ck-msg err'; msg.textContent = status.message || '加载失败'; return; }
+      render();
+    } catch (e) {
+      msg.className = 'ck-msg err'; msg.textContent = '网络错误，请稍后重试';
+    }
+  }
+
+  async function doCheckin() {
+    var msg = document.getElementById('ckMsg');
+    var btn = document.getElementById('ckBtn');
+    msg.className = 'ck-msg'; msg.textContent = '';
+    btn.disabled = true;
+    try {
+      var r = await fetch('/api/checkin', { method: 'POST', headers: headers() });
+      var j = await r.json();
+      if (j.success) {
+        msg.className = 'ck-msg ok';
+        msg.textContent = j.message + ('，账户余额 ' + (j.remainingPoints != null ? j.remainingPoints : '') + ' 点');
+      } else {
+        msg.className = 'ck-msg err';
+        msg.textContent = j.message || '签到失败';
+      }
+      await load();
+    } catch (e) {
+      msg.className = 'ck-msg err'; msg.textContent = '网络错误，请稍后重试';
+      btn.disabled = false;
+    }
+  }
+  window.doCheckin = doCheckin;
+  load();
+})();
+</script>
+<script src="/auth.js"></script>
+</body>
+</html>

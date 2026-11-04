@@ -1,7 +1,8 @@
 // 全部路由（前台页面 + 后台管理 + 开放 API），由 Hono 实现，运行于 Cloudflare Workers。
 import { Hono } from 'hono';
 import * as db from './db.js';
-import { sha256 } from './util.js';
+import { sha256, hmacSha256Hex, randomTokenHex } from './util.js';
+import * as files from './files.js';
 import { getSession, saveSession, destroySession } from './session.js';
 import { render } from './render.js';
 
@@ -27,6 +28,20 @@ app.use('*', async (c, next) => {
 async function jb(c) { try { return (await c.req.json()) || {}; } catch (e) { return {}; } }
 async function fb(c) { try { return (await c.req.parseBody()) || {}; } catch (e) { return {}; } }
 
+// 响应签名：X-Sign = HMAC-SHA256(用户token, timestamp + '.' + nonce + '.' + 响应体)
+// 工具端用本地保存的 token 重新计算即可校验响应未被篡改/伪造；不携带 token 的密钥无法伪造签名。
+async function signedJson(c, payload, status = 200) {
+  const body = JSON.stringify(payload);
+  const ts = Date.now().toString();
+  const nonce = randomTokenHex(8);
+  const sign = await hmacSha256Hex(c.get('token') || '', ts + '.' + nonce + '.' + body);
+  c.header('X-Timestamp', ts);
+  c.header('X-Nonce', nonce);
+  c.header('X-Sign', sign);
+  c.header('X-Sign-Alg', 'HMAC-SHA256');
+  return c.json(payload, status);
+}
+
 // ---------- 鉴权中间件 ----------
 function requireAuth(c, next) {
   const s = c.get('session') || {};
@@ -50,6 +65,7 @@ async function authenticateUser(c, next) {
     if (!u) return c.json({ success: false, message: '令牌无效或已失效' }, 401);
     if (u.status === '已过期') return c.json({ success: false, message: '账号已过期，请联系管理员' }, 403);
     c.set('user', { id: u.id, username: u.username, plan: u.plan, status: u.status });
+    c.set('token', token);
     return next();
   } catch (e) {
     return c.json({ success: false, message: '服务器错误' }, 500);
@@ -63,6 +79,7 @@ app.get('/download', (c) => render(c, 'download'));
 app.get('/manual', (c) => render(c, 'manual'));
 app.get('/faq', (c) => render(c, 'faq'));
 app.get('/login', (c) => render(c, 'login'));
+app.get('/checkin', (c) => render(c, 'checkin'));
 app.get('/pricing', async (c) => {
   try {
     const pricing = await db.getPricingCards();
@@ -192,6 +209,26 @@ app.post('/admin/pricing/save', requireAuth, async (c) => {
   } catch (e) {
     return c.redirect('/admin/pricing');
   }
+});
+app.get('/admin/checkin', requireAuth, async (c) => {
+  try {
+    const cfg = await db.getCheckinConfig();
+    return render(c, 'admin/checkin', { admin: c.get('session').admin, cfg, saved: !!c.req.query('saved') });
+  } catch (e) {
+    return render(c, 'admin/checkin', { admin: c.get('session').admin, cfg: { enabled: true, rewards: Array.from({ length: 30 }, (_, i) => (i + 1) * 5) }, saved: false });
+  }
+});
+app.post('/admin/checkin/save', requireAuth, async (c) => {
+  try {
+    const b = await fb(c);
+    const rewards = String(b.rewards || '')
+      .split(/[\r\n,，、\s]+/).map(s => s.trim()).filter(Boolean).map(Number);
+    await db.saveCheckinConfig({
+      enabled: b.enabled === 'on' || b.enabled === '1' || b.enabled === 'true',
+      rewards
+    });
+  } catch (e) {}
+  return c.redirect('/admin/checkin?saved=1');
 });
 app.get('/admin/settings', requireAuth, (c) => render(c, 'admin/settings', { admin: c.get('session').admin, error: null, success: null }));
 app.post('/admin/settings', requireAuth, async (c) => {
@@ -429,7 +466,7 @@ app.get('/api/points/records', authenticateUser, async (c) => {
   try {
     const userId = c.get('user').id;
     const type = c.req.query('type');
-    if (type && type !== 'usage' && type !== 'daily_min') return c.json({ success: false, message: 'type 仅支持 usage / daily_min' });
+    if (type && type !== 'usage' && type !== 'daily_min' && type !== 'checkin') return c.json({ success: false, message: 'type 仅支持 usage / daily_min / checkin' });
     const page = c.req.query('page') ? parseInt(c.req.query('page'), 10) : 1;
     const pageSize = c.req.query('pageSize') ? parseInt(c.req.query('pageSize'), 10) : 20;
     const data = await db.getPointsLog(userId, { type, page, pageSize });
@@ -462,6 +499,92 @@ app.post('/api/points/stop', authenticateUser, async (c) => {
     const dailyMin = await db.getDailyMinimum();
     return c.json({ success: true, running: false, ratePerHour: cfg.enabledRatePerHour, message: '工具已停止。计费规则：运行 ' + cfg.enabledRatePerHour + ' 点/小时，每日最低消费 ' + dailyMin + ' 点/天' });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }); }
+});
+
+// ---------- 每日签到（前台页面 + 工具端通用，带 token 鉴权 + 响应签名） ----------
+// 状态：GET /api/checkin
+app.get('/api/checkin', authenticateUser, async (c) => {
+  try {
+    return signedJson(c, Object.assign({ success: true }, await db.getCheckinStatus(c.get('user').id)));
+  } catch (e) { return signedJson(c, { success: false, message: '服务器错误' }, 500); }
+});
+// 签到：POST /api/checkin
+app.post('/api/checkin', authenticateUser, async (c) => {
+  try {
+    const r = await db.doCheckin(c.get('user').id);
+    if (!r.ok) {
+      return signedJson(c, { success: false, code: r.code, message: r.message }, r.code === 'DISABLED' ? 403 : 400);
+    }
+    return signedJson(c, Object.assign({ success: true, message: '签到成功，获得 ' + r.reward + ' 点数' }, r));
+  } catch (e) { return signedJson(c, { success: false, message: '服务器错误' }, 500); }
+});
+
+// ---------- 开放 API：文件传输（工具端，带 token 鉴权 + 响应签名） ----------
+// 上传：multipart/form-data（file 字段）或 JSON { name, mime, dataBase64 }
+app.post('/api/files/upload', authenticateUser, async (c) => {
+  try {
+    const userId = c.get('user').id;
+    const ctype = c.req.header('content-type') || '';
+    let name = '', mime = '', bytes = null;
+    if (/multipart\/form-data/i.test(ctype)) {
+      const form = await c.req.parseBody();
+      const f = form.file || Object.values(form).find(v => v && typeof v === 'object' && 'arrayBuffer' in v);
+      if (!f) return signedJson(c, { success: false, message: '缺少 file 字段' }, 400);
+      name = f.name || 'file.bin';
+      mime = f.type || '';
+      bytes = new Uint8Array(await f.arrayBuffer());
+    } else {
+      const b = await jb(c);
+      name = b.name || 'file.bin';
+      mime = b.mime || '';
+      if (!b.dataBase64) return signedJson(c, { success: false, message: '缺少 dataBase64 字段（或改用 multipart/form-data 上传 file 字段）' }, 400);
+      const bin = atob(String(b.dataBase64).replace(/\s+/g, ''));
+      bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    }
+    if (bytes.byteLength > files.MAX_FILE_SIZE) {
+      return signedJson(c, { success: false, message: '文件过大，单文件上限 ' + Math.floor(files.MAX_FILE_SIZE / 1024 / 1024) + 'MB' }, 413);
+    }
+    const saved = await files.saveFile(userId, name, bytes, mime);
+    return signedJson(c, { success: true, message: '上传成功', file: saved });
+  } catch (e) {
+    return signedJson(c, { success: false, message: '服务器错误' }, 500);
+  }
+});
+
+// 列表：GET /api/files?page=1&pageSize=50
+app.get('/api/files', authenticateUser, async (c) => {
+  try {
+    const page = parseInt(c.req.query('page')) || 1;
+    const pageSize = parseInt(c.req.query('pageSize')) || 50;
+    const r = await files.listFiles(c.get('user').id, page, pageSize);
+    return signedJson(c, Object.assign({ success: true }, r));
+  } catch (e) { return signedJson(c, { success: false, message: '服务器错误' }, 500); }
+});
+
+// 下载：GET /api/files/:id（二进制；响应头带 X-File-Sha256 供完整性校验）
+app.get('/api/files/:id', authenticateUser, async (c) => {
+  try {
+    const r = await files.readFileBytes(c.req.param('id'), c.get('user').id);
+    if (!r) return signedJson(c, { success: false, message: '文件不存在' }, 404);
+    c.header('Content-Type', r.meta.mime || 'application/octet-stream');
+    c.header('Content-Disposition', "attachment; filename*=UTF-8''" + encodeURIComponent(r.meta.name));
+    c.header('X-File-Id', String(r.meta.id));
+    c.header('X-File-Name', encodeURIComponent(r.meta.name));
+    c.header('X-File-Size', String(r.meta.size));
+    c.header('X-File-Sha256', String(r.meta.sha256));
+    c.header('X-Sign-Alg', 'HMAC-SHA256');
+    return c.body(r.bytes, 200);
+  } catch (e) { return signedJson(c, { success: false, message: '服务器错误' }, 500); }
+});
+
+// 删除：DELETE /api/files/:id
+app.delete('/api/files/:id', authenticateUser, async (c) => {
+  try {
+    const ok = await files.deleteFile(c.req.param('id'), c.get('user').id);
+    if (!ok) return signedJson(c, { success: false, message: '文件不存在' }, 404);
+    return signedJson(c, { success: true, message: '删除成功' });
+  } catch (e) { return signedJson(c, { success: false, message: '服务器错误' }, 500); }
 });
 
 // 未匹配路由回退到首页（与原 404 渲染 index 行为一致）
