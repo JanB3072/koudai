@@ -6,6 +6,7 @@
 
 - [通用约定](#通用约定)
 - [认证与令牌](#认证与令牌)
+- [版本与同步](#版本与同步)
 - [每日签到](#每日签到)
 - [文件传输](#文件传输)
 - [游戏账号](#游戏账号)
@@ -94,6 +95,105 @@ X-Sign = HMAC_SHA256(key = token, message = X-Timestamp + "." + X-Nonce + "." + 
 
 - 默认返回现有令牌（没有则生成）：`{ "success": true, "token": "..." }`
 - `?regen=1` 或请求体 `{ "regen": true }`：强制重置。
+
+---
+
+## 版本与同步
+
+工具端据此判断本地版本是否为最新，以及需要下载哪些资源包 / 安装包。两类资源：
+
+- **资源包（客户端资源）**：含桌面 exe，由后台「客户端资源」页维护，对外版本号为 `client_version`（后台设置的版本字符串）。
+- **安装包（版本安装包）**：脚本/压缩包等，每个独立版本号（`version`）与内容摘要（`sha256`）。
+
+所有时间字段（`updatedAt` / `createdAt` / `serverTime`）均为 UTC：`updatedAt`/`createdAt` 形如 `YYYY-MM-DD HH:MM:SS`（服务器 D1 存储时间）；`serverTime` 为 ISO8601。二进制下载接口通过响应头 `X-File-Sha256` 做完整性校验。
+
+### 查询客户端版本（公开） `GET /api/version`
+
+无需鉴权，供下载页与工具端取当前最新客户端版本号与 exe 资源清单。
+
+```json
+响应：
+{
+  "success": true,
+  "version": "1.2.5",
+  "updatedAt": "2026-11-05 12:34:56",
+  "resources": [
+    { "name": "koudai.exe", "url": "/api/client/resource/koudai.exe",
+      "sha256": "<64位>", "size": 12345678, "updatedAt": "2026-11-05 12:34:56" }
+  ]
+}
+```
+
+`resources` 仅含 `.exe` 资源；`updatedAt` 为各资源独立的上传时间。
+
+### 版本对比（公开） `GET /api/version/check?current=<本地版本号>`
+
+直接告诉你本地版本与服务器是否一致。
+
+```json
+响应：
+{
+  "success": true,
+  "current": "1.2.3",
+  "latest": "1.2.5",
+  "upToDate": false,      // 与服务器最新版是否一致
+  "hasNewer": true,       // 服务器是否有更新版本
+  "resources": [ { "name": "koudai.exe", "sha256": "...", "size": 12345678,
+                   "updatedAt": "2026-11-05 12:34:56", "url": "/api/client/resource/koudai.exe" } ]
+}
+```
+
+- `upToDate = (current 非空 且 等于 latest)`。
+- `hasNewer` 按语义化版本号比较（如 `1.2.3 < 1.2.5` 为真）。
+- `current` 为空时 `upToDate`/`hasNewer` 均为 false，仅返回 `latest` 供工具获知目标版本。
+
+### 统一同步检查（需鉴权） `GET /api/sync`
+
+一次性返回资源包清单（含上传时间）与安装包清单（含上传时间与上传人），工具端据此逐项比对 `sha256` 判断是否需要更新。
+
+```json
+响应：
+{
+  "success": true,
+  "serverTime": "2026-11-05T12:34:56.000Z",
+  "clientVersion": "1.2.5",
+  "resources": [
+    { "name": "koudai.exe", "sha256": "...", "size": 12345678,
+      "updatedAt": "2026-11-05 12:34:56", "url": "/api/client/resource/koudai.exe" }
+  ],
+  "packages": [
+    { "key": "p-abc", "name": "脚本包.zip", "version": "2.1",
+      "sha256": "...", "size": 99999, "createdAt": "2026-11-04 09:00:00",
+      "uploadedBy": "admin", "url": "/pkg/p-abc" }
+  ]
+}
+```
+
+鉴权同安装包列表（登录会话或 `Authorization: Bearer <token>`）；未携带令牌返回 401。
+
+### 安装包列表（需鉴权） `GET /api/packages`
+
+```json
+响应：{ "success": true, "packages": [ { "key": "p-abc", "name": "脚本包.zip",
+         "version": "2.1", "size": 99999, "sha256": "...",
+         "createdAt": "2026-11-04 09:00:00", "url": "/pkg/p-abc" } ] }
+```
+
+### 下载资源包二进制 `GET /api/client/resource/:name`
+
+返回 exe 二进制体。响应头：
+
+| 响应头 | 说明 |
+|---|---|
+| `X-File-Name` | 文件名（URL 编码） |
+| `X-File-Size` | 字节数 |
+| `X-File-Sha256` | 内容 SHA-256，**下载后必须校验** |
+
+不存在：HTTP 404。
+
+### 下载安装包二进制 `GET /pkg/:id`（需鉴权）
+
+`id` 即安装包 `key`。返回二进制体，响应头同资源包（`X-File-Sha256` 校验）。
 
 ---
 

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/home.css">
 <title>下载 - 口袋助手</title>
 <meta name="description" content="下载口袋助手 Windows 桌面端：Windows 64 位（建议 10/11），基于 WebView2 运行；含安装步骤、升级与卸载说明。">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -54,8 +55,13 @@
       <div class="card2">
         <h3>口袋助手 Windows 版</h3>
         <p style="margin-bottom:16px">系统要求：Windows 64 位（建议 Windows 10/11）。桌面端基于 WebView2 运行，安装包会自动检测运行环境。</p>
-        <a href="/exe/ph-desktop-setup-2.0.0.exe" class="btn btn-primary">下载 Windows 安装包（v2.0.0）</a>
+        <% if (exe) { %>
+        <a href="<%= exe.url %>" class="btn btn-primary">下载 Windows 安装包<% if (version && version !== '0') { %>（v<%= version %>）<% } %></a>
         <p style="margin-top:12px;font-size:13px;color:#6b7280">仅支持 Windows 64 位；安装包已内置 WebView2 运行检测，下载后直接运行即可。</p>
+        <% } else { %>
+        <a href="#" class="btn btn-primary" onclick="return false">安装包暂未发布</a>
+        <p style="margin-top:12px;font-size:13px;color:#6b7280">安装包尚未上传，请稍后或联系管理员。</p>
+        <% } %>
         <div class="steps2" style="margin-top:24px">
           <div class="step2"><h4>运行安装包</h4><p>保存至固定位置后双击运行；如遇 SmartScreen 警告，点击「更多信息」→「仍要运行」。</p></div>
           <div class="step2"><h4>补装 WebView2（如提示）</h4><p>系统缺少 WebView2 时，先安装 Microsoft Edge WebView2 Runtime（Evergreen 版），再重新运行安装程序；公司网络限制微软下载域名的需先放行。</p></div>

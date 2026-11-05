@@ -66,30 +66,20 @@
     <% if(msg) { %><div class="alert-ok"><%= msg %></div><% } %>
 
     <div class="panel">
-      <div class="panel-head"><h3>当前客户端版本</h3></div>
+      <div class="panel-head"><h3>发布新客户端版本</h3></div>
       <div class="panel-body">
-        <p class="hint">工具端启动时先请求 <code>GET /api/version</code> 读取版本号；若与本地版本<strong>一致则不传输文件</strong>，<strong>不一致则</strong>下载最新的 <code>.exe</code> 客户端程序，并用响应头 <code>X-File-Sha256</code> 校验完整性。</p>
-        <div style="margin-bottom:16px"><span class="ver-badge">v<%= version %></span></div>
-        <form method="POST" action="/admin/client/version" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-          <div class="form-group" style="margin:0;flex:1;min-width:200px">
-            <label>发布新版本号（如 1.0.1）</label>
+        <p class="hint">上传 <code>.exe</code> 客户端安装程序（Windows 64 位，单个上限 20MB，同名覆盖并更新 SHA-256）。<strong>版本号与本次发布绑定</strong>：必须填写版本号，上传成功即对外发布该版本（工具端通过 <code>GET /api/version</code> 读取），不能只传文件而不更新版本。脚本 / ZIP 等资源包请到「安装包管理」上传。</p>
+        <div style="margin-bottom:16px">当前已发布版本：<span class="ver-badge">v<%= version %></span></div>
+        <form method="POST" action="/admin/client/resource" enctype="multipart/form-data">
+          <div class="form-group">
+            <label>版本号（必填，如 1.0.1；将作为对外发布版本）</label>
             <input type="text" name="version" placeholder="例如 1.0.1" required pattern="\d+(\.\d+){0,3}">
           </div>
-          <button type="submit" class="btn btn-primary">发布新版本</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h3>上传客户端安装程序（仅 .exe）</h3></div>
-      <div class="panel-body">
-        <p class="hint">本页<strong>只上传 <code>.exe</code> 客户端安装程序</strong>（Windows 64 位），单个文件上限 20MB，同名文件会覆盖并更新 SHA-256。脚本、配置、ZIP 等资源包请到「安装包管理」上传。上传后记得发布新版本号。</p>
-        <form method="POST" action="/admin/client/resource" enctype="multipart/form-data">
           <div class="form-group">
             <label>客户端安装程序（.exe）</label>
             <input type="file" name="file" accept=".exe" required>
           </div>
-          <button type="submit" class="btn btn-primary">上传 exe</button>
+          <button type="submit" class="btn btn-primary">发布新版本</button>
         </form>
       </div>
     </div>
@@ -105,7 +95,7 @@
             <td><%= r.name %></td>
             <td><%= (r.size/1024/1024).toFixed(2) %> MB</td>
             <td class="mono"><%= r.sha256 %></td>
-            <td><%= r.updatedAt %></td>
+            <td><%= fmtDateTime(r.updatedAt) %></td>
             <td>
               <a class="dl" href="/api/client/resource/<%= encodeURIComponent(r.name) %>">下载</a>
               <form method="POST" action="/admin/client/resource/delete" style="display:inline" onsubmit="return confirm('确定删除 <%= r.name %>？')">

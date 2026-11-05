@@ -126,5 +126,8 @@ export async function deleteResource(name) {
   name = sanitizeName(name);
   await db.run('DELETE FROM client_resource_chunks WHERE name = ?', [name]);
   await db.run('DELETE FROM client_resources WHERE name = ?', [name]);
+  // 资源删空后，把对外版本号重置为 0，避免 /api/version 仍暴露一个已不存在的版本
+  const remaining = await db.query('SELECT 1 FROM client_resources LIMIT 1');
+  if (!remaining.length) await setClientVersion('0');
   return true;
 }

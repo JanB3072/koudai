@@ -30,6 +30,7 @@ tags:
   - name: 文件传输
   - name: 游戏账号
   - name: 点数计费
+  - name: 版本与同步
 security:
   - bearerAuth: []
 
@@ -106,6 +107,57 @@ components:
         remaining_points: { type: number }
         type: { type: string, enum: [usage, daily_min, checkin] }
         day: { type: string, example: '2026-11-04' }
+    VersionResource:
+      type: object
+      properties:
+        name: { type: string }
+        url: { type: string, description: 下载地址（相对路径） }
+        sha256: { type: string, description: 64 位内容摘要 }
+        size: { type: integer, description: 字节数 }
+        updatedAt: { type: string, description: 资源上传时间 YYYY-MM-DD HH:MM:SS（UTC） }
+    PackageMeta:
+      type: object
+      properties:
+        key: { type: string, description: 安装包唯一 key，即 /pkg/:id 的 id }
+        name: { type: string }
+        version: { type: string, description: 安装包版本号 }
+        sha256: { type: string }
+        size: { type: integer }
+        createdAt: { type: string, description: 上传时间 YYYY-MM-DD HH:MM:SS（UTC） }
+        uploadedBy: { type: string, description: 上传人 }
+        url: { type: string, description: 下载地址 /pkg/<key> }
+    VersionInfo:
+      type: object
+      properties:
+        success: { type: boolean }
+        version: { type: string, description: 当前客户端（资源包）最新版本号 }
+        updatedAt: { type: string, nullable: true, description: 首个资源的上传时间 }
+        resources:
+          type: array
+          items: { $ref: '#/components/schemas/VersionResource' }
+    VersionCheck:
+      type: object
+      properties:
+        success: { type: boolean }
+        current: { type: string, description: 工具传入的本地版本号 }
+        latest: { type: string, description: 服务器最新版本号 }
+        upToDate: { type: boolean, description: current 与 latest 是否一致 }
+        hasNewer: { type: boolean, description: 服务器是否有更新版本 }
+        resources:
+          type: array
+          items: { $ref: '#/components/schemas/VersionResource' }
+    SyncResult:
+      type: object
+      properties:
+        success: { type: boolean }
+        serverTime: { type: string, format: date-time, description: 服务器时间 ISO8601 }
+        clientVersion: { type: string }
+        resources:
+          type: array
+          items: { $ref: '#/components/schemas/VersionResource' }
+        packages:
+          type: array
+          items: { $ref: '#/components/schemas/PackageMeta' }
   responses:
     Unauthorized:
       description: 未提供或令牌无效
@@ -524,3 +576,110 @@ paths:
                 userId: { type: integer }
       responses:
         '200': { description: 结算结果 }
+
+  /api/version:
+    get:
+      tags: [版本与同步]
+      summary: 查询客户端版本（公开）
+      description: 无需鉴权，返回当前资源包最新版本号与 exe 资源清单。
+      responses:
+        '200':
+          description: 客户端版本与资源清单
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VersionInfo' }
+
+  /api/version/check:
+    get:
+      tags: [版本与同步]
+      summary: 版本对比（公开）
+      parameters:
+        - name: current
+          in: query
+          required: false
+          schema: { type: string }
+          description: 工具本地版本号；为空则仅返回 latest
+      responses:
+        '200':
+          description: 是否一致与是否有更新
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VersionCheck' }
+
+  /api/sync:
+    get:
+      tags: [版本与同步]
+      summary: 统一同步检查（需鉴权）
+      description: 资源包与安装包清单（含 sha256 与上传时间），供工具逐项比对更新。
+      responses:
+        '200':
+          description: 同步清单
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SyncResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/packages:
+    get:
+      tags: [版本与同步]
+      summary: 安装包列表（需鉴权）
+      responses:
+        '200':
+          description: 安装包清单
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  packages:
+                    type: array
+                    items: { $ref: '#/components/schemas/PackageMeta' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/client/resource/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema: { type: string }
+        description: 资源文件名（仅 .exe）
+    get:
+      tags: [版本与同步]
+      summary: 下载资源包二进制（公开）
+      description: 返回 exe 二进制体；响应头含 X-File-Name / X-File-Size / X-File-Sha256。
+      responses:
+        '200':
+          description: 文件二进制
+          headers:
+            X-File-Name: { schema: { type: string }, description: URL 编码文件名 }
+            X-File-Size: { schema: { type: integer } }
+            X-File-Sha256: { schema: { type: string }, description: 内容 SHA-256 }
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '404': { description: 资源不存在 }
+
+  /pkg/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+        description: 安装包 key
+    get:
+      tags: [版本与同步]
+      summary: 下载安装包二进制（需鉴权）
+      description: 返回二进制体；响应头含 X-File-Name / X-File-Size / X-File-Sha256。
+      responses:
+        '200':
+          description: 文件二进制
+          headers:
+            X-File-Name: { schema: { type: string } }
+            X-File-Size: { schema: { type: integer } }
+            X-File-Sha256: { schema: { type: string }, description: 内容 SHA-256 }
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: 安装包不存在 }

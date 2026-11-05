@@ -44,14 +44,15 @@ function toAccount(a) {
   return o;
 }
 
-// 防薅羊毛：同一 (uid, server_id) 仅首次绑定可领首绑奖励
+// 防薅羊毛：同一 (uid, server_id) 仅首次绑定可领首绑奖励 / 注册赠送积分
 async function resolveGameBenefit(uid, serverId, accId) {
-  if (!uid || !serverId) return { tracked: false, firstBind: true };
+  if (!uid || !serverId) return { tracked: false, firstBind: true, isNew: false };
   const prev = await query(
     'SELECT acc_id FROM game_account_benefits WHERE uid = ? AND server_id = ? ORDER BY rowid ASC LIMIT 1',
     [uid, serverId]
   );
   const historicalAccId = prev.length ? prev[0].acc_id : accId;
+  const isNew = prev.length === 0; // 本次调用是否为该游戏账号首次建立奖励记录
   await run(
     'INSERT OR IGNORE INTO game_account_benefits (uid, server_id, first_account_id) VALUES (?, ?, ?)',
     [uid, serverId, historicalAccId]
@@ -61,7 +62,7 @@ async function resolveGameBenefit(uid, serverId, accId) {
     [uid, serverId]
   );
   const firstBind = !!row && String(row.first_account_id) === String(accId);
-  return { tracked: true, firstBind };
+  return { tracked: true, firstBind, isNew };
 }
 
 // ---------- settings ----------

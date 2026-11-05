@@ -95,7 +95,7 @@
             <td><%= (r.size/1024/1024).toFixed(2) %> MB</td>
             <td class="mono"><%= r.sha256 %></td>
             <td><%= r.uploaded_by %></td>
-            <td><%= r.created_at %></td>
+            <td><%= fmtDateTime(r.created_at) %></td>
             <td>
               <a class="dl" href="/pkg/<%= r.pkg_key %>">下载</a>
               <form method="POST" action="/admin/packages/delete" style="display:inline" onsubmit="return confirm('确定删除 <%= r.name %>？')">

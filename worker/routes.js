@@ -102,7 +102,24 @@ async function requireDownload(c, next) {
 // ---------- 前台页面 ----------
 app.get('/', (c) => render(c, 'index'));
 app.get('/features', (c) => render(c, 'features'));
-app.get('/download', (c) => render(c, 'download'));
+app.get('/download', async (c) => {
+  try {
+    const version = await clientRes.getClientVersion();
+    const resources = await clientRes.listResources(); // 仅 .exe 资源
+    // 取上传时间最新的一份 exe 作为下载目标（与数据库最新版本保持一致）
+    const latest = resources
+      .slice()
+      .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))[0] || null;
+    return render(c, 'download', {
+      version,
+      exe: latest
+        ? { name: latest.name, url: '/api/client/resource/' + encodeURIComponent(latest.name), size: latest.size }
+        : null
+    });
+  } catch (e) {
+    return render(c, 'download', { version: '0', exe: null });
+  }
+});
 app.get('/manual', (c) => render(c, 'manual'));
 app.get('/faq', (c) => render(c, 'faq'));
 app.get('/login', (c) => render(c, 'login'));
@@ -361,33 +378,54 @@ app.post('/api/accounts', async (c) => {
     const lastLoginAt = body.lastLoginAt || 0, serverInfoToken = body.serverInfoToken || '', tokenExpireAt = body.tokenExpireAt || 0, avatar = body.avatar || '';
     const qqAccessToken = body.qqAccessToken || '', qqOpenid = body.qqOpenid || '', status = body.status || '正常';
     if (!userId || !name) return c.json({ success: false, message: 'userId 和 name(角色名)不能为空' });
+    let accId, benefit;
+    // 允许同一游戏账号被多个用户各自绑定。仅当同一用户重复绑定同一游戏账号时，更新原有记录，避免产生重复行
+    if (uid && serverId) {
+      const exist = await db.queryOne('SELECT id, acc_id, user_id FROM accounts WHERE uid = ? AND server_id = ? AND user_id = ? LIMIT 1', [uid, serverId, userId]);
+      if (exist) {
+        accId = exist.acc_id || ('acc-' + exist.id);
+        await db.run(
+          'UPDATE accounts SET name = ?, profile_dir = ?, last_login_at = ?, server_info_token = ?, token_expire_at = ?, avatar = ?, qq_access_token = ?, qq_openid = ?, status = ?, updated_at = datetime(\'now\') WHERE id = ?',
+          [name, profileDir || accId, lastLoginAt, serverInfoToken, tokenExpireAt, avatar, qqAccessToken, qqOpenid, status, exist.id]
+        );
+        benefit = await db.resolveGameBenefit(uid, serverId, accId);
+        return c.json({ success: true, id: accId, firstBind: benefit.isNew, benefitEligible: benefit.isNew, tracked: benefit.tracked, giftPoints: 0, message: '更新成功（同一账号重复绑定，已更新原记录）' });
+      }
+    }
+    // 全新游戏账号：新建唯一记录，并在首次绑定时发放赠送积分
     const newId = await db.insert(
       "INSERT INTO accounts (user_id, name, uid, server_id, last_login_at, server_info_token, token_expire_at, avatar, qq_access_token, qq_openid, status, created_at) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, date('now'))",
       [userId, name, uid, serverId, lastLoginAt, serverInfoToken, tokenExpireAt, avatar, qqAccessToken, qqOpenid, status]
     );
-    const accId = id || profileDir || ('acc-' + newId);
+    accId = id || profileDir || ('acc-' + newId);
     const profileDirVal = profileDir || id || accId;
     await db.run('UPDATE accounts SET acc_id = ?, profile_dir = ? WHERE id = ?', [accId, profileDirVal, newId]);
     const du = await db.queryOne('SELECT default_account_id FROM users WHERE id = ?', [userId]);
     if (!du || !du.default_account_id) await db.run('UPDATE users SET default_account_id = ? WHERE id = ?', [accId, userId]);
-    const benefit = await db.resolveGameBenefit(uid, serverId, accId);
-    const message = (benefit.tracked && !benefit.firstBind)
-      ? '创建成功（该游戏账号此前已绑定过，属于重复绑定，不发放首绑奖励）'
-      : '创建成功';
-    return c.json({ success: true, id: accId, firstBind: benefit.firstBind, benefitEligible: benefit.firstBind, tracked: benefit.tracked, message });
+    benefit = await db.resolveGameBenefit(uid, serverId, accId);
+    // 防薅羊毛：赠送积分只在「该游戏账号首次被绑定」时发放；已被其他用户绑定过的账号不再赠送
+    let giftPoints = 0;
+    if (benefit.isNew) {
+      giftPoints = 600;
+      await db.run('UPDATE users SET points = points + ? WHERE id = ?', [giftPoints, userId]);
+    }
+    const message = benefit.isNew
+      ? ('创建成功，已发放该游戏账号首绑赠送积分 ' + giftPoints + ' 点')
+      : '创建成功（该游戏账号此前已被绑定过，不重复发放赠送积分）';
+    return c.json({ success: true, id: accId, firstBind: benefit.isNew, benefitEligible: benefit.isNew, tracked: benefit.tracked, giftPoints, message });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }); }
 });
 app.put('/api/accounts/:id', async (c) => {
   try {
     const id = c.req.param('id');
+    const body = await jb(c);
     const fields = [
       ['name', 'name'], ['uid', 'uid'], ['serverId', 'server_id'], ['profileDir', 'profile_dir'],
       ['lastLoginAt', 'last_login_at'], ['serverInfoToken', 'server_info_token'], ['tokenExpireAt', 'token_expire_at'],
       ['avatar', 'avatar'], ['qqAccessToken', 'qq_access_token'], ['qqOpenid', 'qq_openid'], ['status', 'status']
     ];
     const sets = [], params = [];
-    const body = await jb(c);
     for (const [bodyKey, col] of fields) {
       if (body[bodyKey] !== undefined) { sets.push(col + ' = ?'); params.push(body[bodyKey]); }
     }
@@ -431,10 +469,10 @@ app.post('/api/register', async (c) => {
     if (exist.length) return c.json({ success: false, message: '用户名已存在' });
     const code = (inviteCode && String(inviteCode).trim()) || null;
     await db.run(
-      "INSERT INTO users (username, password, plan, points, status, invite_code, created_at) VALUES (?, ?, '高级版', 600, '正常', ?, date('now'))",
+      "INSERT INTO users (username, password, plan, points, status, invite_code, created_at) VALUES (?, ?, '高级版', 0, '正常', ?, date('now'))",
       [username, await sha256(password), code]
     );
-    return c.json({ success: true, message: '注册成功', points: 600, inviteCode: code });
+    return c.json({ success: true, message: '注册成功', points: 0, inviteCode: code });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }); }
 });
 app.post('/api/login', async (c) => {
@@ -661,7 +699,42 @@ app.get('/api/version', async (c) => {
         name: r.name,
         url: '/api/client/resource/' + encodeURIComponent(r.name),
         sha256: r.sha256,
-        size: r.size
+        size: r.size,
+        updatedAt: r.updatedAt
+      }))
+    });
+  } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
+});
+
+// 版本对比：GET /api/version/check?current=<本地版本号>（公开）。
+// 直接返回 upToDate（与服务器最新版是否一致）、latest（服务器最新版）、hasNewer（是否有更新），以及可下载的 exe 资源列表。
+app.get('/api/version/check', async (c) => {
+  try {
+    const current = String(c.req.query('current') || '').trim();
+    const version = await clientRes.getClientVersion();
+    const resources = await clientRes.listResources();
+    const cmp = (a, b) => {
+      const pa = String(a).split('.').map((x) => parseInt(x, 10) || 0);
+      const pb = String(b).split('.').map((x) => parseInt(x, 10) || 0);
+      const n = Math.max(pa.length, pb.length);
+      for (let i = 0; i < n; i++) {
+        const x = pa[i] || 0, y = pb[i] || 0;
+        if (x !== y) return x < y ? -1 : 1;
+      }
+      return 0;
+    };
+    return c.json({
+      success: true,
+      current,
+      latest: version,
+      upToDate: current !== '' && current === version,
+      hasNewer: current !== '' && cmp(current, version) < 0,
+      resources: resources.map((r) => ({
+        name: r.name,
+        sha256: r.sha256,
+        size: r.size,
+        updatedAt: r.updatedAt,
+        url: '/api/client/resource/' + encodeURIComponent(r.name)
       }))
     });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
@@ -693,6 +766,7 @@ app.get('/admin/client', requireAuth, async (c) => {
       : null;
     const errMap = {
       missing: '请选择要上传的文件',
+      badversion: '请填写合法的版本号（如 1.0.1），版本号需与本次发布绑定',
       exeonly: '客户端资源仅支持 .exe 文件；脚本 / ZIP 包请到「安装包管理」上传',
       empty: '文件内容为空',
       toolarge: '文件超过 20MB 上限，请压缩后再上传',
@@ -713,6 +787,9 @@ app.get('/admin/client', requireAuth, async (c) => {
 app.post('/admin/client/resource', requireAuth, async (c) => {
   try {
     const form = await c.req.parseBody({ all: true });
+    // 版本号与本次发布绑定：上传即发布，必须填写版本号
+    const version = String(form.version || '').trim();
+    if (!/^\d+(\.\d+){0,3}$/.test(version)) return c.redirect('/admin/client?error=badversion');
     const uploaded = Array.isArray(form.file) ? form.file : (form.file ? [form.file] : []);
     if (!uploaded.length) return c.redirect('/admin/client?error=missing');
     // 客户端资源只接收 Windows 安装程序（.exe）
@@ -723,7 +800,9 @@ app.post('/admin/client/resource', requireAuth, async (c) => {
       const bytes = new Uint8Array(await f.arrayBuffer());
       await clientRes.saveResource(f.name, bytes);
     }
-    return c.redirect('/admin/client?uploaded=' + uploaded.length);
+    // 上传成功即对外发布该版本号，避免文件更新了但版本号仍停留在旧值
+    await clientRes.setClientVersion(version);
+    return c.redirect('/admin/client?uploaded=' + uploaded.length + '&version=' + encodeURIComponent(version));
   } catch (e) {
     const m = String((e && e.message) || e);
     const code = /EMPTY_FILE/.test(m) ? 'empty'
@@ -731,16 +810,6 @@ app.post('/admin/client/resource', requireAuth, async (c) => {
       : /D1_ERROR|SQLITE/i.test(m) ? 'dberror'
       : 'unknown';
     return c.redirect('/admin/client?error=' + encodeURIComponent(code));
-  }
-});
-
-app.post('/admin/client/version', requireAuth, async (c) => {
-  try {
-    const b = await fb(c);
-    const v = await clientRes.setClientVersion(b.version);
-    return c.redirect('/admin/client?version=' + encodeURIComponent(v));
-  } catch (e) {
-    return c.redirect('/admin/client?error=' + encodeURIComponent(String((e && e.message) || e)));
   }
 });
 
@@ -819,6 +888,38 @@ app.get('/api/packages', requireDownload, async (c) => {
         size: p.size,
         sha256: p.sha256,
         createdAt: p.created_at,
+        url: '/pkg/' + encodeURIComponent(p.pkg_key)
+      }))
+    });
+  } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
+});
+
+// 统一同步检查：返回资源包与安装包清单（含 sha256 与上传时间），供桌面工具判断本地是否最新
+// 鉴权同 /api/packages（登录会话或 Bearer token）。返回时间均为 D1 存储的 UTC 时间字符串。
+app.get('/api/sync', requireDownload, async (c) => {
+  try {
+    const version = await clientRes.getClientVersion();
+    const resources = await clientRes.listResources();
+    const packages = await pkg.listPackages();
+    return c.json({
+      success: true,
+      serverTime: new Date().toISOString(),
+      clientVersion: version,
+      resources: resources.map((r) => ({
+        name: r.name,
+        sha256: r.sha256,
+        size: r.size,
+        updatedAt: r.updatedAt,
+        url: '/api/client/resource/' + encodeURIComponent(r.name)
+      })),
+      packages: packages.map((p) => ({
+        key: p.pkg_key,
+        name: p.name,
+        version: p.version,
+        sha256: p.sha256,
+        size: p.size,
+        createdAt: p.created_at,
+        uploadedBy: p.uploaded_by,
         url: '/pkg/' + encodeURIComponent(p.pkg_key)
       }))
     });

@@ -20,12 +20,32 @@ export function fmtDate(d) {
   return dt.getFullYear() + '-' + pad2(dt.getMonth() + 1) + '-' + pad2(dt.getDate());
 }
 
-// DATE / DATETIME / 毫秒时间戳 -> YYYY-MM-DD HH:mm:ss（按服务器本地时区，即中国时区）
+// DATE / DATETIME / 毫秒时间戳 -> YYYY-MM-DD HH:mm:ss（按中国时区 UTC+8 显示）
+// 数据库 datetime('now') 存的是 UTC，需当作 UTC 解析后再 +8 小时转成北京时间，
+// 否则在 UTC 运行的 Worker 上会把 UTC 值直接当作本地时间显示（差 8 小时）。
 export function fmtDateTime(d) {
-  if (!d) return '';
-  const dt = toDate(d);
+  if (d == null) return '';
+  let dt;
+  if (d instanceof Date) {
+    dt = d;
+  } else if (typeof d === 'number') {
+    dt = new Date(d);
+  } else {
+    let s = String(d).trim();
+    // 无时区标记的时间串（数据库 datetime 格式 YYYY-MM-DD HH:MM:SS）按 UTC 解析
+    if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(s)) {
+      if (s.indexOf('T') === -1) s = s.replace(' ', 'T');
+      if (!/[Zz]|[+-]\d{2}:?\d{2}$/.test(s)) s += 'Z';
+      dt = new Date(s);
+    } else {
+      dt = new Date(s);
+    }
+  }
   if (isNaN(dt.getTime())) return '';
-  return fmtDate(dt) + ' ' + pad2(dt.getHours()) + ':' + pad2(dt.getMinutes()) + ':' + pad2(dt.getSeconds());
+  // 转中国时区 UTC+8
+  const cn = new Date(dt.getTime() + 8 * 3600 * 1000);
+  return cn.getUTCFullYear() + '-' + pad2(cn.getUTCMonth() + 1) + '-' + pad2(cn.getUTCDate()) +
+    ' ' + pad2(cn.getUTCHours()) + ':' + pad2(cn.getUTCMinutes()) + ':' + pad2(cn.getUTCSeconds());
 }
 
 // YYYY-MM-DD 加 n 天
