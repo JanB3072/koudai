@@ -45,10 +45,26 @@ export async function setClientVersion(v) {
 
 // 资源清单（不含内容）；客户端资源仅含 .exe 安装程序
 export async function listResources() {
-  const rows = await db.query('SELECT name, size, sha256, updated_at FROM client_resources ORDER BY name');
+  const rows = await db.query('SELECT name, size, sha256, updated_at, downloads, last_downloaded_at FROM client_resources ORDER BY name');
   return rows
     .filter(r => /\.exe$/i.test(r.name))
-    .map(r => ({ name: r.name, size: Number(r.size) || 0, sha256: r.sha256, updatedAt: r.updated_at }));
+    .map(r => ({
+      name: r.name,
+      size: Number(r.size) || 0,
+      sha256: r.sha256,
+      updatedAt: r.updated_at,
+      downloads: Number(r.downloads) || 0,
+      lastDownloadedAt: r.last_downloaded_at
+    }));
+}
+
+// 记录一次下载：计数 +1 并记录最近下载时间（供后台统计）
+export async function recordDownload(name) {
+  name = sanitizeName(name);
+  await db.run(
+    'UPDATE client_resources SET downloads = downloads + 1, last_downloaded_at = datetime(\'now\') WHERE name = ?',
+    [name]
+  );
 }
 
 // 资源元数据（不含内容）；不存在返回 null

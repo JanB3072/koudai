@@ -66,31 +66,31 @@
           <div class="card-grid">
             <div class="price-card">
               <h4>月卡</h4>
-              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="m_price" value="<%= pricing.monthlyCard.price %>"></div>
-              <div class="form-group"><label>点数</label><input type="number" name="m_points" value="<%= pricing.monthlyCard.points %>"></div>
-              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="m_days" value="<%= pricing.monthlyCard.days %>"></div>
-              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="m_save" value="<%= pricing.monthlyCard.save %>"></div>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="m_price" value="<%= fmtMoney(pricing.monthlyCard.price) %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="m_points" value="<%= fmtMoney(pricing.monthlyCard.points) %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="m_days" value="<%= fmtMoney(pricing.monthlyCard.days) %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="m_save" value="<%= fmtMoney(pricing.monthlyCard.save) %>"></div>
             </div>
             <div class="price-card">
               <h4>季卡</h4>
-              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="q_price" value="<%= pricing.quarterlyCard.price %>"></div>
-              <div class="form-group"><label>点数</label><input type="number" name="q_points" value="<%= pricing.quarterlyCard.points %>"></div>
-              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="q_days" value="<%= pricing.quarterlyCard.days %>"></div>
-              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="q_save" value="<%= pricing.quarterlyCard.save %>"></div>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="q_price" value="<%= fmtMoney(pricing.quarterlyCard.price) %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="q_points" value="<%= fmtMoney(pricing.quarterlyCard.points) %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="q_days" value="<%= fmtMoney(pricing.quarterlyCard.days) %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="q_save" value="<%= fmtMoney(pricing.quarterlyCard.save) %>"></div>
             </div>
             <div class="price-card">
               <h4>半年卡</h4>
-              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="h_price" value="<%= pricing.halfYearCard.price %>"></div>
-              <div class="form-group"><label>点数</label><input type="number" name="h_points" value="<%= pricing.halfYearCard.points %>"></div>
-              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="h_days" value="<%= pricing.halfYearCard.days %>"></div>
-              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="h_save" value="<%= pricing.halfYearCard.save %>"></div>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="h_price" value="<%= fmtMoney(pricing.halfYearCard.price) %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="h_points" value="<%= fmtMoney(pricing.halfYearCard.points) %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="h_days" value="<%= fmtMoney(pricing.halfYearCard.days) %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="h_save" value="<%= fmtMoney(pricing.halfYearCard.save) %>"></div>
             </div>
             <div class="price-card">
               <h4>年卡</h4>
-              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="y_price" value="<%= pricing.yearlyCard.price %>"></div>
-              <div class="form-group"><label>点数</label><input type="number" name="y_points" value="<%= pricing.yearlyCard.points %>"></div>
-              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="y_days" value="<%= pricing.yearlyCard.days %>"></div>
-              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="y_save" value="<%= pricing.yearlyCard.save %>"></div>
+              <div class="form-group"><label>价格 (元)</label><input type="number" step="0.01" name="y_price" value="<%= fmtMoney(pricing.yearlyCard.price) %>"></div>
+              <div class="form-group"><label>点数</label><input type="number" name="y_points" value="<%= fmtMoney(pricing.yearlyCard.points) %>"></div>
+              <div class="form-group"><label>可用天数</label><input type="number" step="0.1" name="y_days" value="<%= fmtMoney(pricing.yearlyCard.days) %>"></div>
+              <div class="form-group"><label>节省 (元)</label><input type="number" step="0.01" name="y_save" value="<%= fmtMoney(pricing.yearlyCard.save) %>"></div>
             </div>
           </div>
         </div>
@@ -106,17 +106,17 @@
           <div class="plan-row">
             <div class="plan-card">
               <h4>每小时点数</h4>
-              <div class="form-group"><label>每小时消耗 (点)</label><input type="number" step="0.1" name="enabled_rate" value="<%= billing.enabledRatePerHour %>"></div>
+              <div class="form-group"><label>每小时消耗 (点)</label><input type="number" step="0.1" name="enabled_rate" value="<%= fmtMoney(billing.enabledRatePerHour) %>"></div>
               <p style="font-size:12px;color:#6b7280;margin-top:8px">工具运行期间计费，例如 1 表示每小时扣 1 点（满 24 小时 = 24 点/天）。</p>
             </div>
             <div class="plan-card">
               <h4>每天满额点数</h4>
-              <div class="form-group"><label>每天消耗 (点)</label><input type="number" step="0.1" name="disabled_rate" value="<%= billing.disabledRatePerDay %>"></div>
-              <p style="font-size:12px;color:#6b7280;margin-top:8px">工具连续运行 24 小时对应的点数（= 每小时点数 × 24），约 <%= (billing.disabledRatePerDay/24).toFixed(2) %> 点/小时。</p>
+              <div class="form-group"><label>每天消耗 (点)</label><input type="number" step="0.1" name="disabled_rate" value="<%= fmtMoney(billing.disabledRatePerDay) %>"></div>
+              <p style="font-size:12px;color:#6b7280;margin-top:8px">工具连续运行 24 小时对应的点数（= 每小时点数 × 24），约 <%= fmtMoney(billing.disabledRatePerDay/24) %> 点/小时。</p>
             </div>
             <div class="plan-card">
               <h4>每日最低消费</h4>
-              <div class="form-group"><label>每天最低 (点)</label><input type="number" step="0.1" name="daily_minimum" value="<%= billing.dailyMinimum %>"></div>
+              <div class="form-group"><label>每天最低 (点)</label><input type="number" step="0.1" name="daily_minimum" value="<%= fmtMoney(billing.dailyMinimum) %>"></div>
               <p style="font-size:12px;color:#6b7280;margin-top:8px">当日实际使用不足该值时，按该值收取；已达标则不再补扣。</p>
             </div>
           </div>

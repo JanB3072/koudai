@@ -60,6 +60,8 @@ components:
         plan: { type: string, example: 高级版 }
         points: { type: number, example: 123.45 }
         status: { type: string, example: 正常 }
+        inviteCode: { type: string, nullable: true, description: 用户专属邀请码，用于邀请他人 }
+        inviteLink: { type: string, nullable: true, description: 专属邀请链接，形如 https://<域名>/login?invite=<inviteCode> }
     Account:
       type: object
       properties:

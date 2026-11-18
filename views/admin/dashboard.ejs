@@ -61,10 +61,10 @@
       <div class="user-info">欢迎，<%= admin %> | <a href="/admin/logout">退出</a></div>
     </div>
     <div class="stat-grid">
-      <div class="stat-card blue"><div class="label">总用户数</div><div class="value"><%= totalUsers %></div></div>
-      <div class="stat-card green"><div class="label">正常用户</div><div class="value"><%= activeUsers %></div></div>
-      <div class="stat-card orange"><div class="label">总点数</div><div class="value"><%= totalPoints.toLocaleString() %></div></div>
-      <div class="stat-card purple"><div class="label">尊享版用户</div><div class="value"><%= vipCount %></div></div>
+      <div class="stat-card blue"><div class="label">总用户数</div><div class="value"><%= fmtMoney(totalUsers) %></div></div>
+      <div class="stat-card green"><div class="label">正常用户</div><div class="value"><%= fmtMoney(activeUsers) %></div></div>
+      <div class="stat-card orange"><div class="label">总点数</div><div class="value"><%= fmtMoney(totalPoints) %></div></div>
+      <div class="stat-card purple"><div class="label">尊享版用户</div><div class="value"><%= fmtMoney(vipCount) %></div></div>
     </div>
     <div class="panel">
       <div class="panel-head">
@@ -80,7 +80,7 @@
             <td><%= u.username %></td>
             <td><%= u.gameRole %></td>
             <td><span class="tag <%= u.plan==='尊享版'?'tag-vip':'tag-premium' %>"><%= u.plan %></span></td>
-            <td><%= u.points %></td>
+            <td><%= fmtMoney(u.points) %></td>
             <td><span class="tag <%= u.status==='正常'?'tag-ok':'tag-expired' %>"><%= u.status %></span></td>
             <td><%= u.createdAt %></td>
           </tr>

@@ -85,3 +85,22 @@ export function randomTokenHex(bytes = 24) {
   const arr = crypto.getRandomValues(new Uint8Array(bytes));
   return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// ---------- 金额/数字精度工具 ----------
+// 所有金额、点数、计数类数值统一走整数分（×100 取整）运算，避免浮点累加误差。
+// 直接对浮点做 Math.round(x*100)/100 在 1.005 这类边界会因二进制表示丢失精度，
+// 这里叠加 1e-9 修正舍入边界，保证分位四舍五入正确。
+
+// 安全四舍五入到两位小数（返回 Number）。
+export function round2(num) {
+  if (num === null || num === undefined || num === '') return 0;
+  const n = Number(num);
+  if (!Number.isFinite(n)) return 0;
+  const r = Math.round((n * 100) + (n >= 0 ? 1e-9 : -1e-9)) / 100;
+  return Object.is(r, -0) ? 0 : r; // 消除 -0
+}
+
+// 格式化为两位小数字符串（用于展示层）。非有限值回退为 '0.00'。
+export function fmtMoney(num) {
+  return round2(num).toFixed(2);
+}

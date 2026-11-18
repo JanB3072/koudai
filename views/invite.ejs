@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>邀请好友 - 口袋助手</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/home.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="robots" content="noindex,nofollow">
+<style>
+  body{background:#f3f4f6}
+  .invite-wrap{max-width:640px;margin:48px auto;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:32px 28px}
+  .invite-wrap h1{font-size:22px;margin:0 0 8px}
+  .invite-sub{color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:20px}
+  .reward{display:inline-block;background:#eef3ff;color:#4f7cff;font-weight:700;padding:6px 14px;border-radius:999px;font-size:14px;margin-bottom:20px}
+  .field{display:flex;gap:8px;margin-bottom:10px}
+  .field input{flex:1;padding:11px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:#f9fafb;color:#374151;box-sizing:border-box}
+  .field input:focus{outline:none;border-color:#4f7cff}
+  .btn-copy{padding:11px 18px;border:none;border-radius:8px;background:#4f7cff;color:#fff;font-size:14px;cursor:pointer;white-space:nowrap}
+  .btn-copy:hover{background:#3a5fd4}
+  .tip{font-size:13px;color:#6b7280;line-height:1.6}
+  .login-tip{display:none;text-align:center;color:#6b7280;font-size:14px;padding:20px 0}
+  .login-tip a{color:#4f7cff;font-weight:600}
+  .steps{margin:24px 0 0;padding:0;list-style:none}
+  .steps li{padding:10px 0;border-top:1px solid #f3f4f6;font-size:14px;color:#374151}
+  .steps b{color:#4f7cff}
+  .rules{margin-top:26px;border-top:1px solid #f3f4f6;padding-top:18px}
+  .rules h3{font-size:15px;margin:0 0 6px;color:#374151}
+  .rules dl{margin:0}
+  .rules dt{font-weight:600;font-size:13px;color:#374151;margin-top:14px}
+  .rules dd{margin:4px 0 0;font-size:13px;color:#6b7280;line-height:1.6}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="hd-in">
+    <a href="/" class="logo"><span class="logo-dot"></span>口袋助手</a>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/features">功能介绍</a>
+      <a href="/download">下载</a>
+      <a href="/manual">使用说明</a>
+      <a href="/pricing">价格</a>
+      <a href="/faq">常见问题</a>
+    </nav>
+    <div class="hd-actions">
+      <a class="login-link" href="/login">登录</a>
+      <span class="status-pill"><span class="dot"></span>服务运行中</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="invite-wrap">
+    <h1>邀请好友，赚点数</h1>
+    <div class="invite-sub">把你的专属邀请链接发给好友，对方通过链接注册成功后，系统会自动给你发放奖励点数，无需手动操作。</div>
+    <div class="reward">每成功邀请 1 位新用户，你将获得 <%= fmtMoney(inviteReward) %> 点</div>
+
+    <div id="inviteBox">
+      <div class="field">
+        <input type="text" id="inviteLink" readonly placeholder="登录后生成你的专属邀请链接">
+        <button class="btn-copy" id="copyBtn" onclick="copyInvite()">复制链接</button>
+      </div>
+      <div class="tip">复制上面的链接，发给微信/QQ/社群里的好友即可。好友点开并完成注册，奖励点数会自动到账。</div>
+
+      <ul class="steps">
+        <li>1. 复制你的专属邀请链接并发布</li>
+        <li>2. 好友点击链接，在注册页填写信息完成注册</li>
+        <li>3. 好友注册成功，<b>你的账户自动获得 <%= fmtMoney(inviteReward) %> 点</b></li>
+      </ul>
+
+      <div class="rules">
+        <h3>规则说明</h3>
+        <dl>
+          <dt>奖励多少？</dt>
+          <dd>每成功邀请 1 位新用户注册，你将获得 <%= fmtMoney(inviteReward) %> 点奖励（与签到、首绑同属平台奖励点数，可在余额中查看）。</dd>
+          <dt>何时到账？</dt>
+          <dd>好友通过你的链接完成注册并成功创建账号后，奖励点数会即时发放到你的账户，可在首页余额与「每日签到」页查看。</dd>
+          <dt>如何获得我的邀请链接？</dt>
+          <dd>登录后本页面会自动生成你的专属链接（含你的唯一邀请码），点击「复制链接」即可；也可从「每日签到」页的「去邀请」进入本页。</dd>
+          <dt>邀请码是什么？</dt>
+          <dd>每个账号都有一串全球唯一的邀请码（如 KDxxxxxxxx），绑定在你的账号上、不可冒用。你分享出去的链接里就包含这串码。</dd>
+          <dt>必须是新用户吗？</dt>
+          <dd>邀请奖励仅对通过你的链接注册的全新账号生效，同一人重复注册不计奖励。请邀请真实好友，恶意刷量将被取消奖励。</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="login-tip" id="loginTip">
+      请先 <a href="/login">登录</a> 后查看你的专属邀请链接。
+    </div>
+  </div>
+</div>
+
+<script>
+function copyInvite() {
+  const el = document.getElementById('inviteLink');
+  if (!el.value) return;
+  el.select();
+  const done = function () {
+    const b = document.getElementById('copyBtn'); const t = b.textContent;
+    b.textContent = '已复制'; setTimeout(function () { b.textContent = t; }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(el.value).then(done).catch(function () { document.execCommand('copy'); done(); });
+  } else {
+    document.execCommand('copy'); done();
+  }
+}
+async function loadInvite() {
+  let token = '';
+  try { token = localStorage.getItem('koudai_token') || ''; } catch (e) {}
+  const box = document.getElementById('inviteBox');
+  const tip = document.getElementById('loginTip');
+  if (!token) { box.style.display = 'none'; tip.style.display = 'block'; return; }
+  try {
+    const r = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+    const j = await r.json();
+    if (!j.loggedIn || !j.user || !j.user.inviteCode) { box.style.display = 'none'; tip.style.display = 'block'; return; }
+    document.getElementById('inviteLink').value = j.user.inviteLink || (location.origin + '/login?invite=' + encodeURIComponent(j.user.inviteCode));
+  } catch (e) {
+    box.style.display = 'none'; tip.style.display = 'block';
+  }
+}
+window.addEventListener('DOMContentLoaded', loadInvite);
+</script>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="ft-grid">
+      <div>
+        <h4>口袋助手</h4>
+        <p>口袋奇兵桌面端辅助工具：多账号管理、任务自动化、云同步与点数计费。</p>
+      </div>
+      <div>
+        <h4>产品</h4>
+        <a href="/features">功能介绍</a>
+        <a href="/download">下载</a>
+        <a href="/pricing">价格</a>
+      </div>
+      <div>
+        <h4>帮助</h4>
+        <a href="/manual">使用说明</a>
+        <a href="/faq">常见问题</a>
+        <a href="/checkin">每日签到</a>
+      </div>
+    </div>
+    <div class="ft-bottom">&copy; 2026 口袋助手</div>
+  </div>
+</footer>
+</body>
+</html>

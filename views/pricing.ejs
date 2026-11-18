@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>价格与计费 - 口袋助手</title>
-<meta name="description" content="口袋助手价格与计费说明：工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天）；每日最低消费 <%= billing.dailyMinimum %> 点/天；月卡、季卡、半年卡、年卡点数套餐。">
+<meta name="description" content="口袋助手价格与订阅说明：月卡、季卡、半年卡、年卡套餐，按需订阅，享受对应权益。">
 <link rel="stylesheet" href="/style.css">
 <link rel="stylesheet" href="/home.css">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,14 +16,14 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="口袋助手">
 <meta property="og:title" content="价格与计费 - 口袋助手">
-<meta property="og:description" content="口袋助手价格与计费说明：工具运行 1 点/小时（满 24 小时 = 24 点/天）；每日最低消费 12 点/天；月卡、季卡、半年卡、年卡点数套餐。">
+<meta property="og:description" content="口袋助手价格与订阅说明：月卡、季卡、半年卡、年卡套餐，按需订阅，享受对应权益。">
 <meta property="og:url" content="https://koudai.binjia70.workers.dev/pricing">
 <meta property="og:locale" content="zh_CN">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="价格与计费 - 口袋助手">
-<meta name="twitter:description" content="口袋助手按点数计费：1 点/小时，月卡/季卡/半年卡/年卡点数套餐。">
+<meta name="twitter:description" content="口袋助手套餐订阅：月卡、季卡、半年卡、年卡，按需选择，享受对应权益。">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"口袋助手","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows 10/11 (64-bit)","url":"https://koudai.binjia70.workers.dev/pricing","description":"口袋助手按点数计费：工具运行 1 点/小时，月卡/季卡/半年卡/年卡点数套餐。","offers":{"@type":"Offer","price":"0","priceCurrency":"CNY","description":"按点数计费，注册即会员"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"口袋助手","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows 10/11 (64-bit)","url":"https://koudai.binjia70.workers.dev/pricing","description":"口袋助手提供月卡、季卡、半年卡、年卡套餐订阅，按需选择享受对应权益。","offers":{"@type":"Offer","price":"0","priceCurrency":"CNY","description":"套餐订阅，注册即会员"}}
 </script>
 </head>
 <body>
@@ -51,63 +51,61 @@
   <div class="container">
     <div class="section-head">
       <div class="eyebrow">PRICING</div>
-      <h2>按真实使用时长灵活计费</h2>
-      <p>工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天）；每日最低消费 <%= billing.dailyMinimum %> 点/天</p>
+      <h2>按需订阅，灵活选择套餐</h2>
+      <p>提供月卡、季卡、半年卡、年卡多种套餐，按套餐时长享受对应权益，满足不同使用需求。</p>
     </div>
     <div class="grid grid-4">
       <div class="price-card">
         <h3><%= pricing.monthlyCard.name %></h3>
-        <div class="price">&yen;<%= pricing.monthlyCard.price %></div>
-        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.monthlyCard.days %> 天</p>
-        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.monthlyCard.points %> 点</div>
-        <span class="badge badge-normal">省 &yen;<%= pricing.monthlyCard.save %></span>
+        <div class="price">&yen;<%= fmtMoney(pricing.monthlyCard.price) %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= fmtMoney(pricing.monthlyCard.days) %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= fmtMoney(pricing.monthlyCard.points) %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= fmtMoney(pricing.monthlyCard.save) %></span>
       </div>
       <div class="price-card featured">
         <h3><%= pricing.quarterlyCard.name %></h3>
-        <div class="price">&yen;<%= pricing.quarterlyCard.price %></div>
-        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.quarterlyCard.days %> 天</p>
-        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.quarterlyCard.points %> 点</div>
-        <span class="badge badge-normal">省 &yen;<%= pricing.quarterlyCard.save %></span>
+        <div class="price">&yen;<%= fmtMoney(pricing.quarterlyCard.price) %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= fmtMoney(pricing.quarterlyCard.days) %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= fmtMoney(pricing.quarterlyCard.points) %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= fmtMoney(pricing.quarterlyCard.save) %></span>
       </div>
       <div class="price-card">
         <h3><%= pricing.halfYearCard.name %></h3>
-        <div class="price">&yen;<%= pricing.halfYearCard.price %></div>
-        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.halfYearCard.days %> 天</p>
-        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.halfYearCard.points %> 点</div>
-        <span class="badge badge-normal">省 &yen;<%= pricing.halfYearCard.save %></span>
+        <div class="price">&yen;<%= fmtMoney(pricing.halfYearCard.price) %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= fmtMoney(pricing.halfYearCard.days) %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= fmtMoney(pricing.halfYearCard.points) %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= fmtMoney(pricing.halfYearCard.save) %></span>
       </div>
       <div class="price-card">
         <h3><%= pricing.yearlyCard.name %></h3>
-        <div class="price">&yen;<%= pricing.yearlyCard.price %></div>
-        <p style="color:var(--text-light);font-size:13px">可用约 <%= pricing.yearlyCard.days %> 天</p>
-        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= pricing.yearlyCard.points %> 点</div>
-        <span class="badge badge-normal">省 &yen;<%= pricing.yearlyCard.save %></span>
+        <div class="price">&yen;<%= fmtMoney(pricing.yearlyCard.price) %></div>
+        <p style="color:var(--text-light);font-size:13px">可用约 <%= fmtMoney(pricing.yearlyCard.days) %> 天</p>
+        <div style="font-size:24px;font-weight:700;color:var(--primary);margin:12px 0"><%= fmtMoney(pricing.yearlyCard.points) %> 点</div>
+        <span class="badge badge-normal">省 &yen;<%= fmtMoney(pricing.yearlyCard.save) %></span>
       </div>
     </div>
-    <p style="text-align:center;color:var(--text-light);font-size:13px;margin-top:24px">购买套餐后获得对应点数，按真实使用时长消耗：工具运行 <%= billing.enabledRatePerHour %> 点/小时（满 24 小时 = <%= billing.disabledRatePerDay %> 点/天），每日最低消费 <%= billing.dailyMinimum %> 点/天。</p>
+    <p style="text-align:center;color:var(--text-light);font-size:13px;margin-top:24px">购买套餐后获得对应权益，在套餐有效期内畅享全部功能；套餐到期前可在控制台续费，延续使用。</p>
   </div>
 </section>
 
 <section>
   <div class="container">
-    <div class="section-head"><div class="eyebrow">BILLING</div><h2>计费规则说明</h2></div>
+    <div class="section-head"><div class="eyebrow">PLANS</div><h2>套餐与权益说明</h2></div>
     <div class="grid grid-2">
       <div class="card" style="border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.1)">
-        <h3>工具运行中（按小时）</h3>
-        <p style="font-size:13px;color:var(--text-light)">工具运行期间按真实小时数计费</p>
-        <div style="font-size:32px;font-weight:800;color:var(--primary);margin:12px 0"><%= billing.enabledRatePerHour %> 点/小时</div>
+        <h3>套餐即有效期</h3>
+        <p style="font-size:13px;color:var(--text-light)">购买月卡 / 季卡 / 半年卡 / 年卡后，在对应天数内享受会员权益。</p>
         <ul style="padding-left:20px;color:var(--text-light);font-size:14px">
-          <li>连续运行 24 小时 = <%= billing.disabledRatePerDay %> 点/天</li>
-          <li>停止工具后结束本段计费</li>
+          <li>月卡约 30 天、季卡约 90 天、半年卡约 180 天、年卡约 365 天</li>
+          <li>到期前可在控制台续费，权益自动延续</li>
         </ul>
       </div>
       <div class="card">
-        <h3>每日最低消费</h3>
-        <p style="font-size:13px;color:var(--text-light)">无论是否启用，每天至少消耗</p>
-        <div style="font-size:32px;font-weight:800;color:var(--primary);margin:12px 0"><%= billing.dailyMinimum %> 点/天</div>
+        <h3>权益包含内容</h3>
+        <p style="font-size:13px;color:var(--text-light)">套餐包含多账号管理、任务自动化等核心功能。</p>
         <ul style="padding-left:20px;color:var(--text-light);font-size:14px">
-          <li>当日实际使用不足 <%= billing.dailyMinimum %> 点时，按 <%= billing.dailyMinimum %> 点收取</li>
-          <li>运行消耗达到最低后不再额外补扣</li>
+          <li>具体可用功能以当前版本与所选套餐为准</li>
+          <li>新购套餐可联系管理员获取激活码兑换</li>
         </ul>
       </div>
     </div>
@@ -116,54 +114,12 @@
 
 <section>
   <div class="container">
-    <div class="section-head"><div class="eyebrow">POINTS</div><h2>点数如何使用</h2></div>
+    <div class="section-head"><div class="eyebrow">HOW TO USE</div><h2>套餐如何使用</h2></div>
     <div class="grid grid-4">
-      <div class="step"><div class="step-num">01</div><div><strong>工具运行按小时计</strong><p style="font-size:13px;color:var(--text-light)">工具运行时每小时消耗 <%= billing.enabledRatePerHour %> 点，按真实运行时间累计。</p></div></div>
-      <div class="step"><div class="step-num">02</div><div><strong>每日最低消费</strong><p style="font-size:13px;color:var(--text-light)">每天至少消耗 <%= billing.dailyMinimum %> 点，当日不足时按最低收取。</p></div></div>
-      <div class="step"><div class="step-num">03</div><div><strong>每个账号单独计费</strong><p style="font-size:13px;color:var(--text-light)">每个游戏账号的订阅都会分别消耗点数，多账号同时使用时消耗增加。</p></div></div>
-      <div class="step"><div class="step-num">04</div><div><strong>余额不足会暂停</strong><p style="font-size:13px;color:var(--text-light)">点数不足时停止计费，补充点数后可继续。</p></div></div>
-    </div>
-  </div>
-</section>
-
-<section id="cloud-hang-pricing">
-  <div class="container">
-    <div class="section-head"><div class="eyebrow">CLOUD PLAY</div><h2>云端托管与计费</h2>
-    <p>云端托管即「启用工具」状态，按 <%= billing.enabledRatePerHour %> 点/小时计费：一个角色连续运行 24 小时消耗 <%= billing.disabledRatePerDay %> 点，每天另有最低消费 <%= billing.dailyMinimum %> 点。</p></div>
-    <div class="grid grid-4">
-      <div class="step"><div class="step-num">01</div><div><strong>保持启用状态</strong><p style="font-size:13px;color:var(--text-light)">云端接管期间视为工具运行中，按 <%= billing.enabledRatePerHour %> 点/小时计费。</p></div></div>
-      <div class="step"><div class="step-num">02</div><div><strong>需有可用资源</strong><p style="font-size:13px;color:var(--text-light)">切换云端托管时会检查资源，资源不足时不会完成切换。</p></div></div>
-      <div class="step"><div class="step-num">03</div><div><strong>停止即结束计费</strong><p style="font-size:13px;color:var(--text-light)">调用停止接口后结束本段计时，但每日最低消费 <%= billing.dailyMinimum %> 点/天仍会照常结算。</p></div></div>
-      <div class="step"><div class="step-num">04</div><div><strong>点数不足会暂停</strong><p style="font-size:13px;color:var(--text-light)">点数耗尽时云端托管中止，补充点数后可在控制台恢复。</p></div></div>
-    </div>
-  </div>
-</section>
-
-<section id="subscriptionRulesTitle">
-  <div class="container">
-    <div class="section-head"><div class="eyebrow">SUBSCRIPTION</div><h2>游戏账号订阅规则</h2>
-    <p>自己的点数仅用于自己的订阅；默认游戏账号保持自动续费；关联他人游戏账号不代表拥有其订阅。</p></div>
-    <div class="grid grid-3">
-      <div class="step"><div class="step-num">01</div><div><strong>需保留一个默认游戏账号</strong><p style="font-size:13px;color:var(--text-light)">首次关联自有游戏账号时，系统自动选择一个作为默认账号。</p></div></div>
-      <div class="step"><div class="step-num">02</div><div><strong>默认账号保持自动续费</strong><p style="font-size:13px;color:var(--text-light)">默认游戏账号不能改为手动续费，点数充足时系统自动为其续费。</p></div></div>
-      <div class="step"><div class="step-num">03</div><div><strong>更换默认账号后才能解绑</strong><p style="font-size:13px;color:var(--text-light)">默认账号不能直接解除关联，如需解绑请先将另一自有账号设为默认。</p></div></div>
-      <div class="step"><div class="step-num">04</div><div><strong>点数仅用于自己的订阅</strong><p style="font-size:13px;color:var(--text-light)">即使关联了他人游戏账号，也不能用自己的点数为其续费。</p></div></div>
-      <div class="step"><div class="step-num">05</div><div><strong>关联账号不等于拥有订阅</strong><p style="font-size:13px;color:var(--text-light)">同一游戏账号可能被多人关联，谁拥有订阅谁才能管理。</p></div></div>
-      <div class="step"><div class="step-num">06</div><div><strong>其他自有账号可选续费方式</strong><p style="font-size:13px;color:var(--text-light)">除默认账号必须自动续费外，其他高级版账号可选自动或手动续费；尊享版必须自动续费。</p></div></div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <div class="section-head"><div class="eyebrow">BUY</div><h2>如何购买</h2></div>
-    <div class="steps" style="max-width:600px;margin:0 auto">
-      <div class="step"><div class="step-num">1</div><div><strong>联系管理员</strong><p style="font-size:13px;color:var(--text-light)">联系所在用户群管理员，选择所需套餐。</p></div></div>
-      <div class="step"><div class="step-num">2</div><div><strong>取得激活码</strong><p style="font-size:13px;color:var(--text-light)">完成购买后，管理员会提供对应套餐的激活码。</p></div></div>
-      <div class="step"><div class="step-num">3</div><div><strong>兑换点数</strong><p style="font-size:13px;color:var(--text-light)">登录官网控制台，在"激活码兑换"中提交激活码。</p></div></div>
-    </div>
-    <div style="text-align:center;margin-top:32px">
-      <a href="#" class="btn btn-primary">前往控制台兑换</a>
+      <div class="step"><div class="step-num">01</div><div><strong>选择套餐</strong><p style="font-size:13px;color:var(--text-light)">根据自身需求选择月卡 / 季卡 / 半年卡 / 年卡，购买后获得对应权益。</p></div></div>
+      <div class="step"><div class="step-num">02</div><div><strong>激活使用</strong><p style="font-size:13px;color:var(--text-light)">登录控制台，在"激活码兑换"中提交激活码，权益即时生效。</p></div></div>
+      <div class="step"><div class="step-num">03</div><div><strong>多账号管理</strong><p style="font-size:13px;color:var(--text-light)">同一账号可管理多个游戏账号，按需切换使用。</p></div></div>
+      <div class="step"><div class="step-num">04</div><div><strong>到期续费</strong><p style="font-size:13px;color:var(--text-light)">套餐到期前续费可延续权益，避免中断使用。</p></div></div>
     </div>
   </div>
 </section>
@@ -193,7 +149,7 @@
     <div class="ft-grid">
       <div>
         <h4>口袋助手</h4>
-        <p>口袋奇兵桌面端辅助工具：多账号管理、任务自动化、云同步与点数计费。</p>
+        <p>口袋奇兵桌面端辅助工具：多账号管理、任务自动化与套餐订阅。</p>
       </div>
       <div>
         <h4>产品</h4>

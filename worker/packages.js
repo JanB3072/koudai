@@ -22,12 +22,17 @@ function b64decode(s) {
 }
 
 export async function listPackages() {
-  return db.query(
-    'SELECT id, pkg_key, name, version, size, sha256, uploaded_by, created_at FROM version_packages ORDER BY created_at DESC'
+  const rows = await db.query(
+    'SELECT id, pkg_key, name, version, size, sha256, uploaded_by, created_at, downloads FROM version_packages ORDER BY created_at DESC'
   );
+  return rows.map(r => ({ ...r, downloads: Number(r.downloads) || 0 }));
 }
 export async function getPackageByKey(key) {
   return db.queryOne('SELECT * FROM version_packages WHERE pkg_key = ?', [key]);
+}
+// 记录一次下载：计数 +1（供后台统计）
+export async function recordDownload(key) {
+  await db.run('UPDATE version_packages SET downloads = downloads + 1 WHERE pkg_key = ?', [key]);
 }
 export async function savePackage(meta) {
   return db.insert(

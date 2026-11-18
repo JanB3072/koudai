@@ -1,7 +1,7 @@
 // 全部路由（前台页面 + 后台管理 + 开放 API），由 Hono 实现，运行于 Cloudflare Workers。
 import { Hono } from 'hono';
 import * as db from './db.js';
-import { sha256, hmacSha256Hex, randomTokenHex } from './util.js';
+import { sha256, hmacSha256Hex, randomTokenHex, fmtDateTime, round2 } from './util.js';
 import * as files from './files.js';
 import * as clientRes from './clientResources.js';
 import * as pkg from './packages.js';
@@ -9,6 +9,9 @@ import { getSession, saveSession, destroySession } from './session.js';
 import { render } from './render.js';
 
 const app = new Hono();
+
+// 邀请一位新用户注册成功后，奖励邀请人的点数
+const INVITE_REWARD_POINTS = 600;
 
 // 统一错误处理（不暴露内部堆栈）
 app.onError((err, c) => c.text('服务器内部错误', 500));
@@ -100,7 +103,7 @@ async function requireDownload(c, next) {
 }
 
 // ---------- 前台页面 ----------
-app.get('/', (c) => render(c, 'index'));
+app.get('/', (c) => render(c, 'index', { inviteReward: INVITE_REWARD_POINTS }));
 app.get('/features', (c) => render(c, 'features'));
 app.get('/download', async (c) => {
   try {
@@ -123,7 +126,7 @@ app.get('/download', async (c) => {
 app.get('/manual', (c) => render(c, 'manual'));
 app.get('/faq', (c) => render(c, 'faq'));
 app.get('/login', (c) => render(c, 'login'));
-app.get('/checkin', (c) => render(c, 'checkin'));
+app.get('/checkin', (c) => render(c, 'checkin', { inviteReward: INVITE_REWARD_POINTS }));
 app.get('/pricing', async (c) => {
   try {
     const pricing = await db.getPricingCards();
@@ -248,7 +251,7 @@ app.post('/admin/recharge/do', requireAuth, async (c) => {
   try {
     const b = await fb(c);
     const raw = String(b.user || b.userId || '').trim();
-    const amount = Math.round(Number(b.amount) * 100) / 100;
+    const amount = round2(b.amount);
     if (!raw) return c.redirect('/admin/recharge?doerror=userempty');
     if (!(amount > 0)) return c.redirect('/admin/recharge?doerror=amount');
     const found = /^\d+$/.test(raw)
@@ -359,7 +362,7 @@ app.get('/api/accounts', async (c) => {
       const cfg = await db.getBillingConfig();
       return c.json({
         success: true, data: rows.map(db.toAccount),
-        userPoints: u ? Math.round(Number(u.points)) : null,
+        userPoints: u ? round2(u.points) : null,
         defaultAccountId: u ? u.default_account_id : '',
         toolRunning: running, toolEnabled: running,
         ratePerHour: running ? cfg.enabledRatePerHour : (cfg.disabledRatePerDay / 24)
@@ -467,12 +470,24 @@ app.post('/api/register', async (c) => {
     if (!username || !password) return c.json({ success: false, message: '用户名和密码不能为空' });
     const exist = await db.query('SELECT id FROM users WHERE username = ?', [username]);
     if (exist.length) return c.json({ success: false, message: '用户名已存在' });
-    const code = (inviteCode && String(inviteCode).trim()) || null;
+    // 为新用户生成专属邀请码（用于他之后去邀请别人）
+    const myCode = await db.genInviteCode();
+    // 解析「邀请人」：根据填写的邀请码找到对应的老用户
+    let invitedBy = null;
+    if (inviteCode && String(inviteCode).trim()) {
+      const inviter = await db.getUserByInviteCode(inviteCode);
+      if (inviter) invitedBy = inviter.id;
+    }
     await db.run(
-      "INSERT INTO users (username, password, plan, points, status, invite_code, created_at) VALUES (?, ?, '高级版', 0, '正常', ?, date('now'))",
-      [username, await sha256(password), code]
+      "INSERT INTO users (username, password, plan, points, status, invite_code, invited_by, created_at) VALUES (?, ?, '高级版', 0, '正常', ?, ?, date('now'))",
+      [username, await sha256(password), myCode, invitedBy]
     );
-    return c.json({ success: true, message: '注册成功', points: 0, inviteCode: code });
+    const newId = (await db.query('SELECT last_insert_rowid() AS id'))[0].id;
+    // 若带有效邀请码，给邀请人发放奖励点数
+    if (invitedBy && newId) {
+      await db.rewardInviter(invitedBy, newId, INVITE_REWARD_POINTS);
+    }
+    return c.json({ success: true, message: '注册成功', points: 0, inviteCode: myCode });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }); }
 });
 app.post('/api/login', async (c) => {
@@ -486,18 +501,24 @@ app.post('/api/login', async (c) => {
     if (u.status === '已过期') return c.json({ success: false, message: '账号已过期，请联系管理员' });
     await saveSession(c, { user: { id: u.id, username: u.username } });
     const token = await db.ensureApiToken(u.id);
-    u.points = Math.round(Number(u.points) * 100) / 100;
+    u.points = round2(u.points);
     return c.json({ success: true, message: '登录成功', token, user: u });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }); }
 });
 app.get('/api/me', authenticateUser, async (c) => {
   try {
-    const u = await db.queryOne('SELECT id, username, plan, points, status FROM users WHERE id = ?', [c.get('user').id]);
+    const u = await db.queryOne('SELECT id, username, plan, points, status, invite_code FROM users WHERE id = ?', [c.get('user').id]);
     if (!u) return c.json({ success: false, loggedIn: false });
-    u.points = Math.round(Number(u.points) * 100) / 100;
-    return c.json({ success: true, loggedIn: true, user: { id: u.id, username: u.username, plan: u.plan, points: u.points, status: u.status } });
+    u.points = round2(u.points);
+    const inviteCode = u.invite_code || '';
+    let origin = '';
+    try { origin = new URL(c.req.url).origin; } catch (e) {}
+    const inviteLink = inviteCode && origin ? origin + '/login?invite=' + encodeURIComponent(inviteCode) : '';
+    return c.json({ success: true, loggedIn: true, user: { id: u.id, username: u.username, plan: u.plan, points: u.points, status: u.status, inviteCode, inviteLink } });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }); }
 });
+// 前台「我的邀请」页：展示并复制自己的邀请链接
+app.get('/invite', async (c) => render(c, 'invite', { inviteReward: INVITE_REWARD_POINTS }));
 app.post('/api/logout', authenticateUser, async (c) => {
   try { await db.regenerateApiToken(c.get('user').id); } catch (e) {}
   destroySession(c);
@@ -539,9 +560,9 @@ app.post('/api/points/deduct', authenticateUser, async (c) => {
       const minutes = Number(body.minutes);
       if (!Number.isFinite(minutes) || minutes <= 0) return c.json({ success: false, message: '使用时长 minutes 必须为正数' });
       const rate = (await db.getBillingConfig()).enabledRatePerHour || 1;
-      points = Math.round((minutes / 60) * rate * 100) / 100;
+      points = round2((minutes / 60) * rate);
     }
-    points = Math.round(points * 100) / 100;
+    points = round2(points);
     if (!Number.isFinite(points) || points <= 0) return c.json({ success: false, message: '扣除点数必须为正数' });
     const u = await db.queryOne('SELECT id, points FROM users WHERE id = ?', [userId]);
     if (!u) return c.json({ success: false, message: '用户不存在' });
@@ -556,7 +577,7 @@ app.post('/api/points/deduct', authenticateUser, async (c) => {
     await db.logDeduction(userId, accountUuid, deducted, 'usage', cur, remaining);
     return c.json({
       success: true, userId: Number(userId), accountId: accountUuid,
-      deducted: Math.round(deducted * 100) / 100, remainingPoints: Math.round(remaining * 100) / 100, insufficient: points > current
+      deducted: round2(deducted), remainingPoints: round2(remaining), insufficient: points > current
     });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }); }
 });
@@ -656,7 +677,8 @@ app.get('/api/files', authenticateUser, async (c) => {
     const page = parseInt(c.req.query('page')) || 1;
     const pageSize = parseInt(c.req.query('pageSize')) || 50;
     const r = await files.listFiles(c.get('user').id, page, pageSize);
-    return signedJson(c, Object.assign({ success: true }, r));
+    const out = Object.assign({}, r, { files: (r.files || []).map(f => Object.assign({}, f, { created_at: fmtDateTime(f.created_at) })) });
+    return signedJson(c, out);
   } catch (e) { return signedJson(c, { success: false, message: '服务器错误' }, 500); }
 });
 
@@ -694,13 +716,17 @@ app.get('/api/version', async (c) => {
     return c.json({
       success: true,
       version,
-      updatedAt: resources.length ? resources[0].updatedAt : null,
+      // 顶层 updatedAt 取「所有资源里更新时间最新」的那一次，而不是 ORDER BY name 的第一条，
+      // 否则再上传其它资源时版本更新时间不会变化
+      updatedAt: resources.length
+        ? fmtDateTime(resources.reduce((m, r) => (String(r.updatedAt || '') > String(m) ? r.updatedAt : m), ''))
+        : null,
       resources: resources.map((r) => ({
         name: r.name,
         url: '/api/client/resource/' + encodeURIComponent(r.name),
         sha256: r.sha256,
         size: r.size,
-        updatedAt: r.updatedAt
+        updatedAt: fmtDateTime(r.updatedAt)
       }))
     });
   } catch (e) { return c.json({ success: false, message: '服务器错误' }, 500); }
@@ -733,7 +759,7 @@ app.get('/api/version/check', async (c) => {
         name: r.name,
         sha256: r.sha256,
         size: r.size,
-        updatedAt: r.updatedAt,
+        updatedAt: fmtDateTime(r.updatedAt),
         url: '/api/client/resource/' + encodeURIComponent(r.name)
       }))
     });
@@ -745,6 +771,8 @@ app.get('/api/client/resource/:name', async (c) => {
   try {
     const r = await clientRes.getResourceMeta(c.req.param('name'));
     if (!r) return c.json({ success: false, message: '资源不存在' }, 404);
+    // 记录下载次数（后台统计）；先计数再返回二进制流
+    await clientRes.recordDownload(r.name);
     c.header('Content-Type', 'application/octet-stream');
     c.header('Content-Disposition', "attachment; filename*=UTF-8''" + encodeURIComponent(r.name));
     c.header('X-File-Name', encodeURIComponent(r.name));
@@ -759,6 +787,8 @@ app.get('/admin/client', requireAuth, async (c) => {
   try {
     const version = await clientRes.getClientVersion();
     const resources = await clientRes.listResources();
+    const totalDownloads = resources.reduce((s, r) => s + (r.downloads || 0), 0);
+    const topResource = resources.slice().sort((a, b) => (b.downloads || 0) - (a.downloads || 0))[0] || null;
     const q = c.req.query();
     const msg = q.uploaded ? ('已上传 ' + q.uploaded + ' 个文件')
       : q.version ? ('版本已更新为 ' + q.version)
@@ -775,7 +805,7 @@ app.get('/admin/client', requireAuth, async (c) => {
     };
     return render(c, 'admin/client', {
       admin: c.get('session').admin,
-      version, resources,
+      version, resources, totalDownloads, topResource,
       msg,
       error: errMap[q.error] !== undefined ? errMap[q.error] : (q.error || null)
     });
@@ -830,10 +860,12 @@ function pkgExt(name) { const m = String(name || '').toLowerCase().match(/\.([a-
 app.get('/admin/packages', requireAuth, async (c) => {
   try {
     const packages = await pkg.listPackages();
+    const totalDownloads = packages.reduce((s, r) => s + (Number(r.downloads) || 0), 0);
+    const topPackage = packages.slice().sort((a, b) => (Number(b.downloads) || 0) - (Number(a.downloads) || 0))[0] || null;
     const q = c.req.query();
     return render(c, 'admin/packages', {
       admin: c.get('session').admin,
-      packages,
+      packages, totalDownloads, topPackage,
       msg: q.uploaded ? '上传成功' : q.deleted ? '已删除' : null,
       error: q.error || null
     });
@@ -887,7 +919,7 @@ app.get('/api/packages', requireDownload, async (c) => {
         version: p.version,
         size: p.size,
         sha256: p.sha256,
-        createdAt: p.created_at,
+        createdAt: fmtDateTime(p.created_at),
         url: '/pkg/' + encodeURIComponent(p.pkg_key)
       }))
     });
@@ -909,7 +941,7 @@ app.get('/api/sync', requireDownload, async (c) => {
         name: r.name,
         sha256: r.sha256,
         size: r.size,
-        updatedAt: r.updatedAt,
+        updatedAt: fmtDateTime(r.updatedAt),
         url: '/api/client/resource/' + encodeURIComponent(r.name)
       })),
       packages: packages.map((p) => ({
@@ -918,7 +950,7 @@ app.get('/api/sync', requireDownload, async (c) => {
         version: p.version,
         sha256: p.sha256,
         size: p.size,
-        createdAt: p.created_at,
+        createdAt: fmtDateTime(p.created_at),
         uploadedBy: p.uploaded_by,
         url: '/pkg/' + encodeURIComponent(p.pkg_key)
       }))
@@ -932,6 +964,8 @@ app.get('/pkg/:id', requireDownload, async (c) => {
     const id = c.req.param('id');
     const meta = await pkg.getPackageByKey(id);
     if (!meta) return c.json({ success: false, message: '安装包不存在' }, 404);
+    // 记录下载次数（后台统计）；先计数再返回二进制流
+    await pkg.recordDownload(id);
     c.header('Content-Type', 'application/octet-stream');
     c.header('Content-Disposition', "attachment; filename*=UTF-8''" + encodeURIComponent(meta.name));
     c.header('X-File-Size', String(meta.size));
@@ -941,6 +975,6 @@ app.get('/pkg/:id', requireDownload, async (c) => {
 });
 
 // 未匹配路由回退到首页（与原 404 渲染 index 行为一致）
-app.notFound((c) => render(c, 'index'));
+app.notFound((c) => render(c, 'index', { inviteReward: INVITE_REWARD_POINTS }));
 
 export { app };

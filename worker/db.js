@@ -1,6 +1,6 @@
 // D1 (SQLite) 数据访问层，替代原 MySQL 版本。
 // 所有 SQL 已改写为 SQLite 方言（AUTOINCREMENT / date('now') / INSERT OR IGNORE / ON CONFLICT / MAX 等）。
-import { randomTokenHex, fmtDate, fmtDateTime, addDays, asDateStr } from './util.js';
+import { randomTokenHex, fmtDate, fmtDateTime, addDays, asDateStr, round2 } from './util.js';
 
 let DB = null;
 export function setDB(d1) { DB = d1; }
@@ -48,10 +48,10 @@ function toAccount(a) {
 async function resolveGameBenefit(uid, serverId, accId) {
   if (!uid || !serverId) return { tracked: false, firstBind: true, isNew: false };
   const prev = await query(
-    'SELECT acc_id FROM game_account_benefits WHERE uid = ? AND server_id = ? ORDER BY rowid ASC LIMIT 1',
+    'SELECT first_account_id FROM game_account_benefits WHERE uid = ? AND server_id = ? ORDER BY rowid ASC LIMIT 1',
     [uid, serverId]
   );
-  const historicalAccId = prev.length ? prev[0].acc_id : accId;
+  const historicalAccId = prev.length ? prev[0].first_account_id : accId;
   const isNew = prev.length === 0; // 本次调用是否为该游戏账号首次建立奖励记录
   await run(
     'INSERT OR IGNORE INTO game_account_benefits (uid, server_id, first_account_id) VALUES (?, ?, ?)',
@@ -180,7 +180,7 @@ async function doCheckin(userId) {
   if (reward > 0) {
     await run('UPDATE users SET points = points + ? WHERE id = ?', [reward, userId]);
     const u = await queryOne('SELECT points FROM users WHERE id = ?', [userId]);
-    remaining = Math.round(Number(u.points) * 100) / 100;
+    remaining = round2(u.points);
     // amount 记 0，不参与每日最低消费统计；奖励只记在 added_points
     await run(
       "INSERT INTO points_log (user_id, account_id, amount, type, added_points, deducted_points, remaining_points, day) VALUES (?, '', 0, 'checkin', ?, 0, ?, ?)",
@@ -206,11 +206,11 @@ async function settleUserPoints(userId) {
 }
 
 async function logDeduction(userId, accountId, amount, type, day, remainingPoints) {
-  const amt = Math.round(Number(amount) * 100) / 100;
+  const amt = round2(amount);
   await run(
     'INSERT INTO points_log (user_id, account_id, amount, type, added_points, deducted_points, remaining_points, day) ' +
     'VALUES (?, ?, ?, ?, 0, ?, ?, ?)',
-    [userId, accountId || '', amt, type || 'usage', amt, Math.round(Number(remainingPoints) * 100) / 100 || 0, day]
+    [userId, accountId || '', amt, type || 'usage', amt, round2(remainingPoints), day]
   );
 }
 async function getDailyTotal(userId, day) {
@@ -297,14 +297,14 @@ async function settleDailyMinimum(dayStr, onlyUserId) {
     const charge = dailyMin - total;
     if (charge <= 0) continue;
     const current = Number(u.points);
-    const actual = Math.round(Math.min(charge, current) * 100) / 100; // 余额不足扣到 0
+    const actual = round2(Math.min(charge, current)); // 余额不足扣到 0
     await run('UPDATE users SET points = MAX(points - ?, 0) WHERE id = ?', [charge, u.id]);
-    await logDeduction(u.id, u.default_account_id || '', actual, 'daily_min', dayStr, Math.round((current - actual) * 100) / 100);
+    await logDeduction(u.id, u.default_account_id || '', actual, 'daily_min', dayStr, round2(current - actual));
     totalCharged += actual;
     processed++;
-    details.push({ userId: u.id, day: dayStr, beforeTotal: total, charged: actual, remainingPoints: Math.round(Math.max(current - charge, 0) * 100) / 100 });
+    details.push({ userId: u.id, day: dayStr, beforeTotal: total, charged: actual, remainingPoints: round2(Math.max(current - charge, 0)) });
   }
-  return { day: dayStr, dailyMin, processed, totalCharged: Math.round(totalCharged * 100) / 100, details };
+  return { day: dayStr, dailyMin, processed, totalCharged: round2(totalCharged), details };
 }
 
 // ---------- admin ----------
@@ -350,11 +350,42 @@ async function listAllUsers(limit = 1000) {
   return query('SELECT id, username FROM users ORDER BY id LIMIT ?', [limit]);
 }
 async function addUser({ username, gameRole, plan, points, status }) {
+  const inviteCode = await genInviteCode();
   await run(
-    "INSERT INTO users (username, game_role, plan, points, status, created_at, billed_hours, last_daily_settled_date) " +
-    "VALUES (?, ?, ?, ?, ?, date('now'), 0, date('now', '-1 day'))",
-    [username, gameRole || '', plan || '高级版', Number(points) || 0, status || '正常']
+    "INSERT INTO users (username, game_role, plan, points, status, invite_code, created_at, billed_hours, last_daily_settled_date) " +
+    "VALUES (?, ?, ?, ?, ?, ?, date('now'), 0, date('now', '-1 day'))",
+    [username, gameRole || '', plan || '高级版', Number(points) || 0, status || '正常', inviteCode]
   );
+}
+// 生成唯一邀请码：'KD' + 12 位 hex；极低概率冲突时重试
+async function genInviteCode() {
+  for (let i = 0; i < 5; i++) {
+    const code = 'KD' + randomTokenHex(6);
+    const rows = await query('SELECT id FROM users WHERE invite_code = ?', [code]);
+    if (!rows.length) return code;
+  }
+  return 'KD' + randomTokenHex(10);
+}
+async function getUserByInviteCode(code) {
+  if (!code) return null;
+  const rows = await query('SELECT id, username FROM users WHERE invite_code = ?', [String(code).trim()]);
+  return rows.length ? rows[0] : null;
+}
+// 邀请奖励：新人通过某用户邀请码注册成功后，给邀请人发放点数（仿 doCheckin 发放模式）
+async function rewardInviter(inviterId, inviteeId, reward) {
+  const amt = round2(reward);
+  if (!(amt > 0)) return null;
+  const rows = await query('SELECT id, points FROM users WHERE id = ?', [inviterId]);
+  if (!rows.length) return null;
+  const old = Number(rows[0].points) || 0;
+  const newPoints = round2(old + amt);
+  await run('UPDATE users SET points = ? WHERE id = ?', [newPoints, inviterId]);
+  await run(
+    "INSERT INTO points_log (user_id, account_id, amount, type, added_points, deducted_points, remaining_points, day) " +
+    "VALUES (?, '', 0, 'invite', ?, 0, ?, date('now'))",
+    [inviterId, amt, newPoints]
+  );
+  return { oldPoints: old, newPoints, added: amt };
 }
 async function updateUser(id, { points, plan, status, gameRole }) {
   const sets = [], params = [];
@@ -392,21 +423,21 @@ async function regenerateApiToken(userId) {
 }
 
 async function logRecharge(userId, amount, admin, note, remainingPoints) {
-  const amt = Math.round(Number(amount) * 100) / 100;
+  const amt = round2(amount);
   const added = amt > 0 ? amt : 0;
   const deducted = amt < 0 ? -amt : 0;
   await run(
     'INSERT INTO recharge_log (user_id, amount, added_points, deducted_points, remaining_points, admin, note) ' +
     'VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [userId, amt, added, deducted, Math.round(Number(remainingPoints) * 100) / 100 || 0, admin || '', note || '']
+    [userId, amt, added, deducted, round2(remainingPoints), admin || '', note || '']
   );
 }
 async function applyAdminPointsChange(userId, newPoints, admin, note) {
   const rows = await query('SELECT points FROM users WHERE id = ?', [userId]);
   const oldPoints = rows.length ? Number(rows[0].points) : 0;
-  const np = Math.round(Number(newPoints) * 100) / 100;
+  const np = round2(newPoints);
   await updateUser(userId, { points: np });
-  const delta = Math.round((np - oldPoints) * 100) / 100;
+  const delta = round2(np - oldPoints);
   if (delta !== 0) {
     await logRecharge(userId, delta, admin, note || '后台调整', np);
   }
@@ -414,12 +445,12 @@ async function applyAdminPointsChange(userId, newPoints, admin, note) {
 }
 // 充值：在现有点数基础上累加；amt 必须为正数
 async function rechargeUser(userId, amount, admin, note) {
-  const amt = Math.round(Number(amount) * 100) / 100;
+  const amt = round2(amount);
   if (!(amt > 0)) throw new Error('INVALID_AMOUNT');
   const rows = await query('SELECT id, points FROM users WHERE id = ?', [userId]);
   if (!rows.length) throw new Error('USER_NOT_FOUND');
   const oldPoints = Number(rows[0].points) || 0;
-  const newPoints = Math.round((oldPoints + amt) * 100) / 100;
+  const newPoints = round2(oldPoints + amt);
   await run('UPDATE users SET points = ? WHERE id = ?', [newPoints, userId]);
   await logRecharge(userId, amt, admin, note || '后台充值', newPoints);
   return { oldPoints, newPoints, added: amt };
@@ -459,13 +490,28 @@ async function getPricingCards() {
   for (const r of rows) {
     out[r.card_key] = { name: r.name, price: Number(r.price), points: Number(r.points), days: Number(r.days), save: Number(r.save) };
   }
+  // 缺省兜底：保证前台 pricing.monthlyCard 等字段始终存在，避免页面因 undefined 报错；
+  // 后台未配置（表为空）时显示 0，配置并保存后即生效（savePricingCards 为 upsert）
+  const defaults = {
+    monthlyCard: { name: '月卡', price: 0, points: 0, days: 30, save: 0 },
+    quarterlyCard: { name: '季卡', price: 0, points: 0, days: 90, save: 0 },
+    halfYearCard: { name: '半年卡', price: 0, points: 0, days: 180, save: 0 },
+    yearlyCard: { name: '年卡', price: 0, points: 0, days: 365, save: 0 }
+  };
+  for (const k of Object.keys(defaults)) {
+    if (!out[k]) out[k] = defaults[k];
+  }
   return out;
 }
 async function savePricingCards(cards) {
   for (const key of Object.keys(cards)) {
     const c = cards[key];
-    await run('UPDATE pricing SET name = ?, price = ?, points = ?, days = ?, save = ? WHERE card_key = ?',
-      [c.name, Number(c.price), Number(c.points), Number(c.days), Number(c.save), key]);
+    // upsert：表为空（未初始化种子数据）时也能把后台配置落库，前台才能读到
+    await run(
+      'INSERT INTO pricing (card_key, name, price, points, days, save) VALUES (?, ?, ?, ?, ?, ?) ' +
+      'ON CONFLICT(card_key) DO UPDATE SET name = excluded.name, price = excluded.price, points = excluded.points, days = excluded.days, save = excluded.save',
+      [key, c.name, Number(c.price), Number(c.points), Number(c.days), Number(c.save)]
+    );
   }
 }
 
@@ -480,6 +526,7 @@ export {
   getDashboardStats, getUsersPage, listAllUsers, addUser, updateUser, deleteUser, applyAdminPointsChange,
   getPricingCards, savePricingCards,
   ensureApiToken, getUserByToken, regenerateApiToken, logRecharge, getAllRechargeLog, rechargeUser,
+  genInviteCode, getUserByInviteCode, rewardInviter,
   getCheckinConfig, saveCheckinConfig, getCheckinStatus, doCheckin,
   fmtDateTime, fmtDate, ensureSchema
 };

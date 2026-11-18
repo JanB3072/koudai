@@ -104,9 +104,9 @@
               <td><%= r.id %></td>
               <td><%= r.username %> <span style="color:#9ca3af">#<%= r.userId %></span></td>
               <td><%= r.accountId || '-' %></td>
-              <td class="amt-neg"><%= r.deductedPoints.toFixed(2) %></td>
-              <td class="amt-pos"><%= r.addedPoints.toFixed(2) %></td>
-              <td><b><%= r.remainingPoints.toFixed(2) %></b></td>
+              <td class="amt-neg"><%= fmtMoney(r.deductedPoints) %></td>
+              <td class="amt-pos"><%= fmtMoney(r.addedPoints) %></td>
+              <td><b><%= fmtMoney(r.remainingPoints) %></b></td>
               <td><span class="tag <%= r.type==='usage'?'tag-usage':'tag-daily' %>"><%= r.type==='usage'?'工具上报':'每日最低补足' %></span></td>
               <td><%= r.day %></td>
               <td><%= r.createdAt %></td>

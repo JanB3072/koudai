@@ -101,7 +101,7 @@
             <td><%= u.username %></td>
             <td><%= u.gameRole %></td>
             <td><span class="tag <%= u.plan==='尊享版'?'tag-vip':'tag-premium' %>"><%= u.plan %></span></td>
-            <td><b><%= u.points %></b></td>
+            <td><b><%= fmtMoney(u.points) %></b></td>
             <td><span class="tag <%= u.status==='正常'?'tag-ok':'tag-expired' %>"><%= u.status %></span></td>
             <td><%= u.createdAt %></td>
             <td>

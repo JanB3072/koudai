@@ -44,6 +44,16 @@
   "description":"口袋奇兵桌面端辅助工具，提供多账号管理、任务自动化与云同步。"
 }
 </script>
+<style>
+  .invite-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-radius:14px;background:linear-gradient(135deg,#4f7cff,#6a5cff);color:#fff;text-decoration:none;box-shadow:0 8px 24px rgba(79,124,255,.28);transition:.2s}
+  .invite-cta:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(79,124,255,.35)}
+  .invite-cta .ic-title{font-size:18px;font-weight:700}
+  .invite-cta .ic-sub{font-size:13px;opacity:.92;margin-top:5px;line-height:1.6}
+  .invite-cta .ic-sub b{color:#ffe27a}
+  .invite-cta .ic-btn{flex:none;padding:12px 22px;border-radius:10px;background:#fff;color:#4f7cff;font-weight:700;font-size:15px;white-space:nowrap}
+  .nav-invite{color:#fff !important;background:#4f7cff;padding:6px 12px;border-radius:8px;font-weight:700}
+  .nav-invite:hover{background:#3a5fd4}
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -56,6 +66,7 @@
       <a href="/manual">使用说明</a>
       <a href="/pricing">价格</a>
       <a href="/faq">常见问题</a>
+      <a href="/invite" class="nav-invite">邀请赚钱</a>
     </nav>
     <div class="hd-actions">
       <a class="login-link" href="/login">登录</a>
@@ -78,6 +89,18 @@
       <div class="m"><b>72 小时</b><span>断网离线宽限</span></div>
       <div class="m"><b>每 36 分钟</b><span>批量上报一次用量</span></div>
     </div>
+  </div>
+</section>
+
+<section class="sec" style="padding-top:0">
+  <div class="container">
+    <a href="/invite" class="invite-cta">
+      <div class="ic-text">
+        <div class="ic-title">邀请好友，你赚点数</div>
+        <div class="ic-sub">每成功邀请 1 位新用户注册，你的账户自动获得 <b><%= fmtMoney(inviteReward) %></b> 点，只需把专属链接发出去即可。</div>
+      </div>
+      <span class="ic-btn">立即邀请 →</span>
+    </a>
   </div>
 </section>
 

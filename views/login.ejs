@@ -81,7 +81,7 @@
         <div class="field">
           <label>邀请码<span class="opt">（选填）</span></label>
           <input type="text" id="regInvite" placeholder="如有邀请码可填写，不填也可注册">
-          <div class="hint">邀请码非必填，留空也能正常注册。</div>
+          <div class="hint">邀请码选填：填写好友发给你的邀请链接中的邀请码，他将在你注册成功时获得邀请奖励点数；不填也能正常注册。</div>
         </div>
         <button type="submit" class="btn-block">注册</button>
         <div id="registerMsg" class="msg"></div>
@@ -91,6 +91,17 @@
 </div>
 
 <script>
+// 邀请链接落地：?invite=CODE 时自动预填邀请码并切到注册页
+(function () {
+  try {
+    const inv = new URLSearchParams(location.search).get('invite');
+    if (inv) {
+      const el = document.getElementById('regInvite');
+      if (el) el.value = inv;
+      switchTab('register');
+    }
+  } catch (e) {}
+})();
 function kdSetToken(t){ try{ if(t) localStorage.setItem('koudai_token', t); else localStorage.removeItem('koudai_token'); }catch(e){} }
 function switchTab(t){
   document.getElementById('tabLogin').classList.toggle('active', t==='login');
