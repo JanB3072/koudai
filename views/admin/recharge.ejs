@@ -192,9 +192,13 @@
     else if(e.key === 'Escape'){ list.style.display = 'none'; }
   });
   list.addEventListener('mousedown', function(e){ var el = e.target.closest('.ss-opt'); if(el) choose(el); });
-  document.addEventListener('click', function(e){ if(!wrap.contains(e.target)) list.style.display = 'none'; });
-  window.addEventListener('resize', function(){ list.style.display = 'none'; });
-  window.addEventListener('scroll', function(){ list.style.display = 'none'; }, true);
+  // 把列表挂到 body：.panel / .main 都有 overflow:hidden，留在内部会被裁剪，导致列表显示不全、看似无法滚动/选中
+  document.body.appendChild(list);
+  function inPicker(el){ return wrap.contains(el) || list.contains(el); }
+  document.addEventListener('click', function(e){ if(!inPicker(e.target)) list.style.display = 'none'; });
+  window.addEventListener('resize', function(){ if(list.style.display === 'block') place(); });
+  // 不监听 scroll：body 为 overflow:hidden，文档不滚动，fixed 列表坐标稳定；
+  // 原实现在捕获阶段监听所有 scroll，列表自身滚动会被误判并隐藏，故彻底移除。
   // 预填已选用户（筛选/充值后回显）
   if(hidden.value){ var u = users.filter(function(x){return String(x.id) === String(hidden.value);})[0]; if(u) input.value = u.id + ' · ' + u.username; }
 })();
